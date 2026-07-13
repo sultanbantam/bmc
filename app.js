@@ -3,6 +3,72 @@ const cloneData = (value) => {
   return JSON.parse(JSON.stringify(value));
 };
 
+function getBackendConfig() {
+  const baseUrl = String(window.BMC_API_URL || localStorage.getItem("bmc-api-url") || "").trim().replace(/\/+$/, "");
+  const apiKey = String(window.BMC_API_KEY || localStorage.getItem("bmc-api-key") || "").trim();
+  return { baseUrl, apiKey };
+}
+
+function hasBackendConfig() {
+  return Boolean(getBackendConfig().baseUrl);
+}
+
+async function requestBackend(path, payload) {
+  const { baseUrl, apiKey } = getBackendConfig();
+  if (!baseUrl) throw new Error("BMC_API_URL belum diatur.");
+
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers["x-app-key"] = apiKey;
+
+  const response = await fetch(`${baseUrl}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || `Backend error ${response.status}`);
+  }
+
+  return data;
+}
+
+async function generateBmcViaBackend(idea) {
+  const data = await requestBackend("/api/bmc/generate", { idea });
+  return normalizeRemoteBmc(data, idea);
+}
+
+async function answerQuestionWithBackend(question) {
+  if (!hasBackendConfig()) return answerQuestion(question);
+  const data = await requestBackend("/api/bmc/chat", {
+    idea: state.idea,
+    bmc: state.bmc,
+    risks: state.risks,
+    question
+  });
+  return String(data.answer || answerQuestion(question)).trim();
+}
+
+function normalizeRemoteBmc(data, idea) {
+  const sector = detectSector(idea);
+  const fallbackBmc = buildBmc(idea, sector);
+  const fallbackRisks = buildRisks(idea, sector);
+  const bmc = {};
+
+  blocks.forEach((block) => {
+    const items = data?.bmc?.[block.key];
+    bmc[block.key] = Array.isArray(items) && items.length ? items : fallbackBmc[block.key];
+  });
+
+  return {
+    title: String(data?.title || summarizeIdea(idea)).trim(),
+    source: data?.source || "backend",
+    bmc,
+    risks: Array.isArray(data?.risks) && data.risks.length ? data.risks : fallbackRisks
+  };
+}
+
 const blocks = [
   { key: "customerSegments", title: "Customer Segments", tone: "teal" },
   { key: "valuePropositions", title: "Value Propositions", tone: "coral" },
@@ -267,12 +333,12 @@ function init() {
 }
 
 function bindEvents() {
-  els.heroForm.addEventListener("submit", (event) => {
+  els.heroForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const idea = els.heroIdea.value.trim();
     if (idea) {
       els.ideaInput.value = idea;
-      generateBmcFromInput();
+      await generateBmcFromInput();
       document.querySelector("#workspace").scrollIntoView({ behavior: "smooth", block: "start" });
     }
   });
@@ -280,9 +346,9 @@ function bindEvents() {
   els.generateBtn.addEventListener("click", generateBmcFromInput);
 
   document.querySelectorAll(".prompt-chip").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       els.ideaInput.value = button.dataset.idea;
-      generateBmcFromInput();
+      await generateBmcFromInput();
     });
   });
 
@@ -290,14 +356,25 @@ function bindEvents() {
     button.addEventListener("click", () => switchTab(button.dataset.tab));
   });
 
-  els.chatForm.addEventListener("submit", (event) => {
+  els.chatForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const question = els.chatInput.value.trim();
     if (!question) return;
     addMessage("user", question);
-    addMessage("ai", answerQuestion(question));
     els.chatInput.value = "";
     switchTab("chat");
+
+    const pending = addMessage("ai", "Memproses jawaban...");
+    setStatus("Memproses chat");
+
+    try {
+      const answer = await answerQuestionWithBackend(question);
+      updateMessage(pending, "ai", answer);
+      setStatus("Chat siap");
+    } catch (error) {
+      updateMessage(pending, "ai", `${answerQuestion(question)}\n\nCatatan: backend belum bisa dihubungi (${error.message}). Saya pakai fallback lokal dulu.`);
+      setStatus("Fallback lokal");
+    }
   });
 
   els.voiceBtn.addEventListener("click", startVoiceInput);
@@ -349,27 +426,50 @@ function switchTab(tab) {
   });
 }
 
-function generateBmcFromInput() {
+async function generateBmcFromInput() {
   const idea = els.ideaInput.value.trim();
   if (!idea) {
     setStatus("Isi ide dulu");
     els.ideaInput.focus();
     return;
   }
-  state.idea = idea;
-  setStatus("Memproses");
 
+  state.idea = idea;
+  setStatus(hasBackendConfig() ? "Memproses AI" : "Memproses");
+  els.generateBtn.disabled = true;
+
+  let fallbackNotice = "";
+  try {
+    if (hasBackendConfig()) {
+      const result = await generateBmcViaBackend(idea);
+      state.bmc = result.bmc;
+      state.risks = result.risks;
+      els.canvasTitle.textContent = `BMC - ${result.title || summarizeIdea(idea)}`;
+    } else {
+      useLocalBmc(idea);
+    }
+  } catch (error) {
+    useLocalBmc(idea);
+    fallbackNotice = `Backend belum bisa dihubungi (${error.message}). BMC ini dibuat dengan fallback lokal dulu. Setelah API Contabo aktif dan HTTPS/CORS benar, hasil akan memakai backend AI.`;
+  } finally {
+    els.generateBtn.disabled = false;
+  }
+
+  renderCanvas();
+  renderRisks();
+  renderChatIntro();
+  if (fallbackNotice) addMessage("ai", fallbackNotice);
+  persistState();
+  setStatus(fallbackNotice ? "Fallback lokal" : "BMC siap");
+  switchTab(fallbackNotice ? "chat" : "canvas");
+}
+
+function useLocalBmc(idea) {
   const sector = detectSector(idea);
   const businessName = summarizeIdea(idea);
   state.bmc = buildBmc(idea, sector);
   state.risks = buildRisks(idea, sector);
   els.canvasTitle.textContent = `BMC - ${businessName}`;
-  renderCanvas();
-  renderRisks();
-  renderChatIntro();
-  persistState();
-  setStatus("BMC siap");
-  switchTab("canvas");
 }
 
 function detectSector(idea) {
@@ -615,9 +715,15 @@ function renderChatIntro() {
 function addMessage(role, text) {
   const message = document.createElement("div");
   message.className = `message ${role}`;
+  updateMessage(message, role, text);
+  els.chatLog.append(message);
+  els.chatLog.scrollTop = els.chatLog.scrollHeight;
+  return message;
+}
+
+function updateMessage(message, role, text) {
   const label = role === "ai" ? "BMC AI" : "Anda";
   message.innerHTML = `<strong>${label}</strong>${formatChatText(text)}`;
-  els.chatLog.append(message);
   els.chatLog.scrollTop = els.chatLog.scrollHeight;
 }
 

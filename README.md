@@ -4,7 +4,7 @@ Prototype aplikasi Business Model Canvas AI Agent Platform sesuai brief lampiran
 
 ## Cara membuka
 
-Buka `index.html` langsung di browser.
+Buka `index.html` langsung di browser. Jika ingin memakai backend AI di Contabo, edit `config.js` lalu isi `window.BMC_API_URL` dengan domain API backend.
 
 ## Fitur MVP
 
@@ -16,6 +16,19 @@ Buka `index.html` langsung di browser.
 - Export BMC sebagai Markdown, HTML, atau print PDF dari browser.
 - Social Media AI Agent untuk membuat 5 draft post lintas Instagram, LinkedIn, X, TikTok, dan Facebook.
 
-## Catatan integrasi backend
+## Backend
 
-Versi ini berjalan offline dengan generator heuristik di frontend. Untuk produksi, ganti fungsi `buildBmc`, `buildRisks`, dan `answerQuestion` di `app.js` menjadi panggilan API LLM terstruktur, lalu tambahkan Supabase Auth, Midtrans/Stripe, RAG pgvector/Pinecone, serta MCP social publishing seperti Kadenzo atau Outpost.
+Backend Express sudah tersedia di folder `backend/` dengan endpoint `GET /health`, `POST /api/bmc/generate`, dan `POST /api/bmc/chat`. Backend bisa memakai OpenAI API jika `OPENAI_API_KEY` diisi, dan otomatis fallback ke generator lokal jika API key kosong atau request AI gagal.
+
+Untuk deploy Contabo dengan PM2, lihat `backend/README.md`.
+
+## Catatan produksi
+
+Untuk frontend Vercel, API Contabo sebaiknya dipasang di domain HTTPS lewat Nginx reverse proxy, lalu isi `config.js`:
+
+```js
+window.BMC_API_URL = "https://api.domain-anda.com";
+window.BMC_API_KEY = "";
+```
+
+Fase berikutnya bisa menambahkan Supabase Auth, Midtrans/Stripe, penyimpanan BMC, RAG pgvector/Pinecone, serta MCP social publishing seperti Kadenzo atau Outpost.

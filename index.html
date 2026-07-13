@@ -286,7 +286,7 @@
         <div class="faq-list">
           <details>
             <summary>Apakah ini sudah memakai API OpenAI atau Claude?</summary>
-            <p>Versi ini adalah MVP frontend offline dengan generator heuristik. Struktur kodenya siap diganti menjadi API route LLM saat backend disiapkan.</p>
+            <p>Frontend tetap punya fallback offline, dan backend Express sudah tersedia untuk memakai OpenAI API jika config.js diarahkan ke domain API Contabo.</p>
           </details>
           <details>
             <summary>Apakah social agent langsung publish?</summary>
@@ -317,6 +317,7 @@
       </article>
     </template>
 
+    <script src="config.js"></script>
     <script src="app.js"></script>
   </body>
 </html>
