@@ -1,18 +1,20 @@
 const { generateLocalBmc, answerLocalChat, blocks } = require("./localGenerator");
 const { buildBmcMessages, buildChatMessages } = require("./prompts");
+const { buildKnowledgeContext } = require("./knowledgeStore");
 
 const requiredBmcKeys = blocks.map((block) => block.key);
 
 async function generateBmc(idea, options = {}) {
   const language = normalizeLanguage(options.language);
-  const localDraft = generateLocalBmc(idea, { language });
+  const knowledge = buildKnowledgeContext(idea, { language, limit: 4 });
+  const localDraft = attachKnowledge(generateLocalBmc(idea, { language }), knowledge, language);
 
   if (!process.env.OPENAI_API_KEY) {
     return localDraft;
   }
 
   try {
-    const aiDraft = await callOpenAiJson(buildBmcMessages(idea, localDraft, { language }));
+    const aiDraft = await callOpenAiJson(buildBmcMessages(idea, localDraft, { language, knowledge }));
     return normalizeBmcResponse(aiDraft, localDraft);
   } catch (error) {
     if (process.env.AI_FALLBACK_TO_LOCAL === "false") {
@@ -38,7 +40,8 @@ async function chatBmc({ idea, bmc, risks, question, language: requestedLanguage
     throw error;
   }
 
-  const localAnswer = answerLocalChat({ idea, bmc, risks, question: cleanQuestion, language });
+  const knowledge = buildKnowledgeContext(`${idea || ""}\n${cleanQuestion}`, { language, limit: 4 });
+  const localAnswer = withKnowledgeAnswer(answerLocalChat({ idea, bmc, risks, question: cleanQuestion, language }), knowledge, language);
 
   if (!process.env.OPENAI_API_KEY) {
     return {
@@ -53,7 +56,7 @@ async function chatBmc({ idea, bmc, risks, question, language: requestedLanguage
   }
 
   try {
-    const aiAnswer = await callOpenAiJson(buildChatMessages({ idea, bmc, risks, question: cleanQuestion, localAnswer, language }));
+    const aiAnswer = await callOpenAiJson(buildChatMessages({ idea, bmc, risks, question: cleanQuestion, localAnswer, language, knowledge }));
     return {
       source: "openai",
       answer: String(aiAnswer.answer || localAnswer).trim(),
@@ -79,6 +82,39 @@ async function chatBmc({ idea, bmc, risks, question, language: requestedLanguage
   }
 }
 
+function attachKnowledge(draft, knowledge, language) {
+  if (!knowledge.matches.length) return draft;
+  const note = language === "en"
+    ? `Curated knowledge used: ${knowledge.matches.map((item) => item.title).join(", ")}.`
+    : `Knowledge kurasi digunakan: ${knowledge.matches.map((item) => item.title).join(", ")}.`;
+  const keyResources = Array.isArray(draft.bmc?.keyResources) ? draft.bmc.keyResources : [];
+  const keyActivities = Array.isArray(draft.bmc?.keyActivities) ? draft.bmc.keyActivities : [];
+
+  return {
+    ...draft,
+    knowledge: knowledge.matches,
+    bmc: {
+      ...draft.bmc,
+      keyResources: [note, ...keyResources].slice(0, 5),
+      keyActivities: [
+        language === "en"
+          ? "Review relevant curated references before validating the riskiest assumptions."
+          : "Tinjau rujukan kurasi yang relevan sebelum menguji asumsi paling berisiko.",
+        ...keyActivities
+      ].slice(0, 5)
+    }
+  };
+}
+
+function withKnowledgeAnswer(answer, knowledge, language) {
+  if (!knowledge.matches.length) return answer;
+  const heading = language === "en" ? "Relevant curated references" : "Rujukan kurasi relevan";
+  const references = knowledge.matches
+    .slice(0, 3)
+    .map((item, index) => `${index + 1}. ${item.title}: ${item.snippet}`)
+    .join("\n");
+  return `${answer}\n\n${heading}:\n${references}`;
+}
 function normalizeLanguage(value) {
   return String(value || "").toLowerCase() === "en" ? "en" : "id";
 }

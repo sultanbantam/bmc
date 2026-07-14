@@ -7,8 +7,19 @@ Backend Express untuk BMC AI Agent Platform.
 - `GET /health`
 - `POST /api/bmc/generate`
 - `POST /api/bmc/chat`
+- `POST /api/knowledge/upload`
+- `POST /api/knowledge/sources`
+- `POST /api/knowledge/search`
+- `POST /api/social/save`
+- `POST /api/social/schedule`
+- `POST /api/social/publish-due`
+- `POST /api/social/list`
 
 Jika `OPENAI_API_KEY` kosong, backend tetap berjalan memakai generator lokal. Jika API key diisi, backend memakai OpenAI Chat Completions dan fallback lokal saat AI error.
+
+Knowledge base MVP menyimpan sumber dan chunk di file JSON pada `backend/data` atau folder yang ditentukan `BMC_DATA_DIR`. Untuk tahap ini upload terbaik adalah `.txt`, `.md`, atau teks kurasi yang sudah dipaste dari buku/paper. PDF/DOCX/OCR bisa ditambahkan pada fase database/parser.
+
+Social publishing MVP menyimpan draft dan jadwal di `backend/data/social-posts.json`. Default `SOCIAL_PUBLISH_MODE=mock`, artinya tombol publish due menandai post sebagai published tanpa mengirim ke platform. Untuk mode live, tiap platform tetap perlu OAuth/token resmi; adapter X disiapkan lewat `X_USER_TOKEN`.
 
 ## Jalankan Lokal
 

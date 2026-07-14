@@ -22,6 +22,7 @@
       </a>
       <nav class="nav-links" aria-label="Bagian halaman">
         <a href="#workspace">Generator</a>
+        <a href="#knowledge-base">Knowledge</a>
         <a href="#social-agent">Social Agent</a>
         <a href="#pricing">Harga</a>
         <a href="#faq">FAQ</a>
@@ -164,6 +165,41 @@
         </div>
       </section>
 
+      <section class="knowledge-section" id="knowledge-base">
+        <div class="section-heading compact">
+          <p class="eyebrow">Knowledge Base</p>
+          <h2>Upload Buku dan Paper Kurasi</h2>
+        </div>
+        <div class="knowledge-workbench">
+          <form class="knowledge-form" id="knowledge-form">
+            <label for="knowledge-title">Judul sumber</label>
+            <input id="knowledge-title" type="text" placeholder="Contoh: Business Model Generation - bab Value Proposition" />
+            <div class="knowledge-row">
+              <label>
+                Penulis
+                <input id="knowledge-author" type="text" placeholder="Nama penulis" />
+              </label>
+              <label>
+                Tahun
+                <input id="knowledge-year" type="text" placeholder="2010" />
+              </label>
+            </div>
+            <label for="knowledge-tags">Tag</label>
+            <input id="knowledge-tags" type="text" placeholder="customer-segments, pricing, validation" />
+            <label for="knowledge-file">File teks</label>
+            <input id="knowledge-file" type="file" accept=".txt,.md" />
+            <label for="knowledge-content">Isi kurasi</label>
+            <textarea id="knowledge-content" rows="8" placeholder="Paste ringkasan atau teks yang sudah boleh dipakai oleh AI."></textarea>
+            <div class="knowledge-actions">
+              <button class="icon-button primary" type="submit"><span aria-hidden="true">+</span><span>Upload Knowledge</span></button>
+              <button class="icon-button" id="knowledge-refresh" type="button"><span aria-hidden="true">sync</span><span>Refresh</span></button>
+            </div>
+            <p class="knowledge-status" id="knowledge-status">Knowledge siap menerima sumber kurasi.</p>
+          </form>
+          <div class="knowledge-list" id="knowledge-list" aria-live="polite"></div>
+        </div>
+      </section>
+
       <section class="steps-section" id="how-it-works">
         <div class="section-heading compact">
           <p class="eyebrow">Workflow</p>
@@ -208,8 +244,21 @@
               <span aria-hidden="true">+</span>
               <span>Buat 5 Post</span>
             </button>
+            <div class="social-scheduler">
+              <label for="schedule-at">Jadwal mulai</label>
+              <input id="schedule-at" type="datetime-local" />
+              <div class="social-actions">
+                <button class="icon-button" id="save-social-drafts" type="button"><span aria-hidden="true">save</span><span>Simpan Draft</span></button>
+                <button class="icon-button" id="schedule-social-posts" type="button"><span aria-hidden="true">time</span><span>Jadwalkan</span></button>
+                <button class="icon-button" id="publish-due-posts" type="button"><span aria-hidden="true">send</span><span>Publish Due</span></button>
+              </div>
+              <p class="social-status" id="social-status">Draft sosial siap dibuat.</p>
+            </div>
           </div>
-          <div class="post-board" id="post-board" aria-live="polite"></div>
+          <div>
+            <div class="post-board" id="post-board" aria-live="polite"></div>
+            <div class="social-queue" id="social-queue" aria-live="polite"></div>
+          </div>
         </div>
       </section>
 

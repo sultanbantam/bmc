@@ -19,6 +19,7 @@ Aturan kualitas:
 
 function buildBmcMessages(idea, localDraft, options = {}) {
   const language = normalizeLanguage(options.language);
+  const knowledge = options.knowledge?.summary || "";
   return [
     { role: "system", content: systemPrompt(language) },
     {
@@ -29,6 +30,11 @@ Buat Business Model Canvas untuk ide berikut:
 
 Gunakan draft lokal ini sebagai baseline, tetapi perbaiki agar lebih tajam dan tidak generik:
 ${JSON.stringify(localDraft, null, 2)}
+
+Rujukan knowledge base kurasi jika tersedia:
+${knowledge || "-"}
+
+Jika memakai rujukan, rangkum insightnya. Jangan menyalin kutipan panjang.
 
 Bahasa output wajib: ${language === "en" ? "English" : "Bahasa Indonesia"}.
 
@@ -50,8 +56,9 @@ ${blockContract}
   ];
 }
 
-function buildChatMessages({ idea, bmc, risks, question, localAnswer, language: requestedLanguage }) {
+function buildChatMessages({ idea, bmc, risks, question, localAnswer, language: requestedLanguage, knowledge: requestedKnowledge }) {
   const language = normalizeLanguage(requestedLanguage);
+  const knowledge = requestedKnowledge?.summary || "";
   return [
     { role: "system", content: systemPrompt(language) },
     {
@@ -73,6 +80,11 @@ Pertanyaan user:
 
 Baseline jawaban lokal:
 ${localAnswer}
+
+Rujukan knowledge base kurasi jika tersedia:
+${knowledge || "-"}
+
+Jika memakai rujukan, rangkum insightnya. Jangan menyalin kutipan panjang.
 
 Bahasa output wajib: ${language === "en" ? "English" : "Bahasa Indonesia"}.
 

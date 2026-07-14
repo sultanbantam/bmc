@@ -1061,6 +1061,114 @@ input:focus {
   }
 }
 
+
+.knowledge-section {
+  padding: 72px clamp(18px, 4vw, 56px);
+  background: #f7faf7;
+}
+
+.knowledge-workbench {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 18px;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.knowledge-form,
+.knowledge-list,
+.social-queue {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+}
+
+.knowledge-form {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+}
+
+.knowledge-form input,
+.knowledge-form textarea,
+.social-scheduler input {
+  width: 100%;
+  border: 1px solid #c9d5cf;
+  border-radius: var(--radius);
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  padding: 11px 12px;
+}
+
+.knowledge-row {
+  display: grid;
+  grid-template-columns: 1fr 110px;
+  gap: 12px;
+}
+
+.knowledge-row label {
+  display: grid;
+  gap: 7px;
+}
+
+.knowledge-actions,
+.social-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.knowledge-status,
+.social-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.knowledge-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 220px;
+  padding: 18px;
+}
+
+.knowledge-item,
+.queue-item {
+  border: 1px solid rgba(44, 60, 55, 0.12);
+  border-radius: var(--radius);
+  background: white;
+  padding: 12px;
+}
+
+.knowledge-item h3,
+.queue-item h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.knowledge-item p,
+.queue-item p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.social-scheduler {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.social-queue {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px;
+}
+
 @media (max-width: 920px) {
   .topbar {
     align-items: flex-start;
@@ -1081,6 +1189,7 @@ input:focus {
 
   .app-shell,
   .social-workbench,
+  .knowledge-workbench,
   .risk-layout {
     grid-template-columns: 1fr;
   }
@@ -1137,6 +1246,10 @@ input:focus {
 
   .hero-metrics {
     display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .knowledge-row {
     grid-template-columns: 1fr;
   }
 

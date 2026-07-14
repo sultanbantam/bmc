@@ -305,6 +305,7 @@ const platforms = ["Instagram", "LinkedIn", "X", "TikTok", "Facebook"];
 
 const translations = {
   id: {
+    navKnowledge: "Knowledge",
     navPricing: "Harga",
     navFaq: "FAQ",
     start: "Mulai",
@@ -411,9 +412,20 @@ const translations = {
     refinePrompt: "Refine {block} saya",
     socialHashtags: "Hashtags",
     socialVisual: "Visual",
-    socialSchedule: "Jadwal"
+    socialSchedule: "Jadwal",
+    knowledgeTitle: "Upload Buku dan Paper Kurasi",
+    knowledgeTitlePlaceholder: "Contoh: Business Model Generation - bab Value Proposition",
+    knowledgeTagsPlaceholder: "customer-segments, pricing, validation",
+    knowledgeContentPlaceholder: "Paste ringkasan atau teks yang sudah boleh dipakai oleh AI.",
+    knowledgeUploadButton: "Upload Knowledge",
+    knowledgeRefreshButton: "Refresh",
+    socialScheduleLabel: "Jadwal mulai",
+    socialSaveDrafts: "Simpan Draft",
+    socialSchedulePosts: "Jadwalkan",
+    socialPublishDue: "Publish Due"
   },
   en: {
+    navKnowledge: "Knowledge",
     navPricing: "Pricing",
     navFaq: "FAQ",
     start: "Start",
@@ -520,7 +532,17 @@ const translations = {
     refinePrompt: "Refine my {block}",
     socialHashtags: "Hashtags",
     socialVisual: "Visual",
-    socialSchedule: "Schedule"
+    socialSchedule: "Schedule",
+    knowledgeTitle: "Upload Curated Books and Papers",
+    knowledgeTitlePlaceholder: "Example: Business Model Generation - Value Proposition chapter",
+    knowledgeTagsPlaceholder: "customer-segments, pricing, validation",
+    knowledgeContentPlaceholder: "Paste a curated summary or text that AI is allowed to use.",
+    knowledgeUploadButton: "Upload Knowledge",
+    knowledgeRefreshButton: "Refresh",
+    socialScheduleLabel: "Start schedule",
+    socialSaveDrafts: "Save Drafts",
+    socialSchedulePosts: "Schedule",
+    socialPublishDue: "Publish Due"
   }
 };
 
@@ -530,7 +552,8 @@ const state = {
   idea: "",
   language: "id",
   selectedPlatforms: new Set(["Instagram", "LinkedIn", "X"]),
-  selectedTopic: topicsByLanguage.id[0]
+  selectedTopic: topicsByLanguage.id[0],
+  socialPosts: []
 };
 
 const els = {
@@ -553,7 +576,23 @@ const els = {
   topicInput: document.querySelector("#topic-input"),
   postBoard: document.querySelector("#post-board"),
   generatePosts: document.querySelector("#generate-posts"),
-  languageButtons: document.querySelectorAll(".lang-button")
+  languageButtons: document.querySelectorAll(".lang-button"),
+  knowledgeForm: document.querySelector("#knowledge-form"),
+  knowledgeTitle: document.querySelector("#knowledge-title"),
+  knowledgeAuthor: document.querySelector("#knowledge-author"),
+  knowledgeYear: document.querySelector("#knowledge-year"),
+  knowledgeTags: document.querySelector("#knowledge-tags"),
+  knowledgeFile: document.querySelector("#knowledge-file"),
+  knowledgeContent: document.querySelector("#knowledge-content"),
+  knowledgeRefresh: document.querySelector("#knowledge-refresh"),
+  knowledgeStatus: document.querySelector("#knowledge-status"),
+  knowledgeList: document.querySelector("#knowledge-list"),
+  scheduleAt: document.querySelector("#schedule-at"),
+  saveSocialDrafts: document.querySelector("#save-social-drafts"),
+  scheduleSocialPosts: document.querySelector("#schedule-social-posts"),
+  publishDuePosts: document.querySelector("#publish-due-posts"),
+  socialStatus: document.querySelector("#social-status"),
+  socialQueue: document.querySelector("#social-queue")
 };
 
 function init() {
@@ -565,6 +604,9 @@ function init() {
   renderSocialControls();
   renderPosts(generatePosts());
   bindEvents();
+  setDefaultSchedule();
+  loadKnowledgeSources();
+  loadSocialQueue();
   setStatus(t("statusReady"));
 }
 
@@ -623,6 +665,12 @@ function bindEvents() {
   document.querySelector("#export-html").addEventListener("click", () => downloadFile("bmc-output.html", toStandaloneHtml(), "text/html"));
   document.querySelector("#print-pdf").addEventListener("click", () => window.print());
   els.generatePosts.addEventListener("click", () => renderPosts(generatePosts()));
+  els.knowledgeForm?.addEventListener("submit", uploadKnowledge);
+  els.knowledgeFile?.addEventListener("change", loadKnowledgeFile);
+  els.knowledgeRefresh?.addEventListener("click", loadKnowledgeSources);
+  els.saveSocialDrafts?.addEventListener("click", saveSocialDrafts);
+  els.scheduleSocialPosts?.addEventListener("click", scheduleSocialPosts);
+  els.publishDuePosts?.addEventListener("click", publishDuePosts);
   els.topicInput.addEventListener("input", () => {
     state.selectedTopic = els.topicInput.value.trim() || getTopics()[0];
   });
@@ -694,6 +742,7 @@ function applyLanguage() {
   });
 
   const textTargets = [
+    ['.nav-links a[href="#knowledge-base"]', 'navKnowledge'],
     ['.nav-links a[href="#pricing"]', 'navPricing'],
     ['.nav-links a[href="#faq"]', 'navFaq'],
     [".topbar-cta", "start"],
@@ -721,6 +770,9 @@ function applyLanguage() {
     ["#tab-risk .muted", "riskCopy"],
     ['label[for="chat-input"]', "chatLabel"],
     [".chat-form button", "chatSubmit"],
+    ["#knowledge-base .section-heading h2", "knowledgeTitle"],
+    [".knowledge-actions button:first-child span:last-child", "knowledgeUploadButton"],
+    [".knowledge-actions button:last-child span:last-child", "knowledgeRefreshButton"],
     ["#how-it-works .section-heading h2", "workflowTitle"],
     [".step-grid article:nth-child(1) h3", "step1Title"],
     [".step-grid article:nth-child(1) p", "step1Copy"],
@@ -732,6 +784,10 @@ function applyLanguage() {
     ['label[for="topic-input"]', "socialTopicLabel"],
     [".social-controls label:nth-of-type(2)", "socialPlatformLabel"],
     ["#generate-posts span:last-child", "socialButton"],
+    [".social-scheduler label", "socialScheduleLabel"],
+    ["#save-social-drafts span:last-child", "socialSaveDrafts"],
+    ["#schedule-social-posts span:last-child", "socialSchedulePosts"],
+    ["#publish-due-posts span:last-child", "socialPublishDue"],
     ["#features .section-heading .eyebrow", "featureEyebrow"],
     ["#features .section-heading h2", "featureTitle"],
     [".feature-grid article:nth-child(1) h3", "feature1Title"],
@@ -780,7 +836,10 @@ function applyLanguage() {
     [els.heroIdea, "heroPlaceholder"],
     [els.ideaInput, "ideaPlaceholder"],
     [els.chatInput, "chatPlaceholder"],
-    [els.topicInput, "socialTopicPlaceholder"]
+    [els.topicInput, "socialTopicPlaceholder"],
+    [els.knowledgeTitle, "knowledgeTitlePlaceholder"],
+    [els.knowledgeTags, "knowledgeTagsPlaceholder"],
+    [els.knowledgeContent, "knowledgeContentPlaceholder"]
   ];
   placeholderTargets.forEach(([element, key]) => {
     if (element) element.setAttribute("placeholder", t(key));
@@ -1488,6 +1547,7 @@ function bestTime(platform, index) {
   return list[index % list.length];
 }
 function renderPosts(posts) {
+  state.socialPosts = posts;
   els.postBoard.innerHTML = "";
   posts.forEach((post) => {
     const article = document.createElement("article");
@@ -1508,6 +1568,170 @@ function renderPosts(posts) {
   });
 }
 
+async function loadKnowledgeFile() {
+  const file = els.knowledgeFile?.files?.[0];
+  if (!file) return;
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (!["txt", "md"].includes(ext)) {
+    setKnowledgeStatus("MVP ini menerima .txt/.md. Untuk PDF/DOCX, paste teks kurasi dulu.");
+    return;
+  }
+  const content = await file.text();
+  els.knowledgeContent.value = content;
+  if (!els.knowledgeTitle.value.trim()) els.knowledgeTitle.value = file.name.replace(/\.[^.]+$/, "");
+  setKnowledgeStatus(`File ${file.name} siap di-upload.`);
+}
+
+async function uploadKnowledge(event) {
+  event.preventDefault();
+  if (!hasBackendConfig()) {
+    setKnowledgeStatus("Backend API belum aktif di config.js.");
+    return;
+  }
+
+  try {
+    const file = els.knowledgeFile?.files?.[0];
+    const payload = {
+      title: els.knowledgeTitle.value,
+      author: els.knowledgeAuthor.value,
+      year: els.knowledgeYear.value,
+      tags: els.knowledgeTags.value,
+      language: state.language,
+      fileName: file?.name || "",
+      content: els.knowledgeContent.value
+    };
+    const result = await requestBackend("/api/knowledge/upload", payload);
+    setKnowledgeStatus(`Knowledge tersimpan: ${result.source.title} (${result.chunks} chunk).`);
+    els.knowledgeForm.reset();
+    await loadKnowledgeSources();
+  } catch (error) {
+    setKnowledgeStatus(`Upload gagal: ${error.message}`);
+  }
+}
+
+async function loadKnowledgeSources() {
+  if (!els.knowledgeList) return;
+  if (!hasBackendConfig()) {
+    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>Backend belum aktif</h3><p>Isi BMC_API_URL agar knowledge base bisa dipakai.</p></article>`;
+    return;
+  }
+
+  try {
+    const data = await requestBackend("/api/knowledge/sources", {});
+    renderKnowledgeSources(data.sources || []);
+  } catch (error) {
+    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>Knowledge belum tersedia</h3><p>${escapeHtml(error.message)}</p></article>`;
+  }
+}
+
+function renderKnowledgeSources(sources) {
+  if (!sources.length) {
+    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>Belum ada sumber</h3><p>Upload teks kurasi buku/paper untuk mulai memberi pengetahuan ke agent.</p></article>`;
+    return;
+  }
+
+  els.knowledgeList.innerHTML = sources.map((source) => `
+    <article class="knowledge-item">
+      <h3>${escapeHtml(source.title)}</h3>
+      <p>${escapeHtml([source.author, source.year].filter(Boolean).join(" - ") || "Sumber kurasi")} · ${source.chunks} chunk · ${escapeHtml(source.language || "id")}</p>
+      <p>${escapeHtml((source.tags || []).join(", "))}</p>
+    </article>
+  `).join("");
+}
+
+function setKnowledgeStatus(message) {
+  if (els.knowledgeStatus) els.knowledgeStatus.textContent = message;
+}
+
+function setDefaultSchedule() {
+  if (!els.scheduleAt || els.scheduleAt.value) return;
+  const date = new Date(Date.now() + 30 * 60 * 1000);
+  date.setSeconds(0, 0);
+  els.scheduleAt.value = toDatetimeLocal(date);
+}
+
+async function saveSocialDrafts() {
+  if (!hasBackendConfig()) {
+    setSocialStatus("Backend API belum aktif di config.js.");
+    return;
+  }
+  try {
+    const data = await requestBackend("/api/social/save", { posts: state.socialPosts });
+    setSocialStatus(`${data.count} draft tersimpan.`);
+    await loadSocialQueue();
+  } catch (error) {
+    setSocialStatus(`Simpan draft gagal: ${error.message}`);
+  }
+}
+
+async function scheduleSocialPosts() {
+  if (!hasBackendConfig()) {
+    setSocialStatus("Backend API belum aktif di config.js.");
+    return;
+  }
+  try {
+    const data = await requestBackend("/api/social/schedule", {
+      posts: state.socialPosts,
+      scheduledAt: els.scheduleAt.value ? new Date(els.scheduleAt.value).toISOString() : undefined
+    });
+    setSocialStatus(`${data.count} post dijadwalkan.`);
+    await loadSocialQueue();
+  } catch (error) {
+    setSocialStatus(`Jadwal gagal: ${error.message}`);
+  }
+}
+
+async function publishDuePosts() {
+  if (!hasBackendConfig()) {
+    setSocialStatus("Backend API belum aktif di config.js.");
+    return;
+  }
+  try {
+    const data = await requestBackend("/api/social/publish-due", {});
+    setSocialStatus(`${data.processed} post due diproses.`);
+    await loadSocialQueue();
+  } catch (error) {
+    setSocialStatus(`Publish due gagal: ${error.message}`);
+  }
+}
+
+async function loadSocialQueue() {
+  if (!els.socialQueue) return;
+  if (!hasBackendConfig()) {
+    els.socialQueue.innerHTML = `<article class="queue-item"><h3>Queue belum aktif</h3><p>Backend diperlukan untuk menyimpan draft dan jadwal.</p></article>`;
+    return;
+  }
+  try {
+    const data = await requestBackend("/api/social/list", { limit: 8 });
+    renderSocialQueue(data.posts || []);
+  } catch (error) {
+    els.socialQueue.innerHTML = `<article class="queue-item"><h3>Queue belum tersedia</h3><p>${escapeHtml(error.message)}</p></article>`;
+  }
+}
+
+function renderSocialQueue(posts) {
+  if (!posts.length) {
+    els.socialQueue.innerHTML = `<article class="queue-item"><h3>Belum ada jadwal</h3><p>Simpan draft atau jadwalkan post dari hasil Social Agent.</p></article>`;
+    return;
+  }
+
+  els.socialQueue.innerHTML = posts.map((post) => `
+    <article class="queue-item">
+      <h3>${escapeHtml(post.platform)} · ${escapeHtml(post.status)}</h3>
+      <p>${escapeHtml(post.title || post.caption).slice(0, 140)}</p>
+      <p>${post.scheduledAt ? escapeHtml(new Date(post.scheduledAt).toLocaleString()) : "Draft"}</p>
+    </article>
+  `).join("");
+}
+
+function setSocialStatus(message) {
+  if (els.socialStatus) els.socialStatus.textContent = message;
+}
+
+function toDatetimeLocal(date) {
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+}
 function formatChatText(text) {
   return escapeHtml(text).replace(/\n/g, "<br>");
 }
