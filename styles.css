@@ -125,6 +125,47 @@ a {
   border-color: var(--coral);
 }
 
+.topbar-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-width: 190px;
+}
+
+.language-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(44, 60, 55, 0.16);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.lang-button {
+  min-width: 38px;
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  color: #43524f;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.lang-button.active {
+  background: var(--ink);
+  color: white;
+}
+
+.lang-button:focus-visible {
+  outline: 2px solid var(--coral);
+  outline-offset: 2px;
+}
+
 .topbar-cta,
 .hero-form button,
 .icon-button.primary,
@@ -1063,11 +1104,21 @@ input:focus {
 
   .topbar {
     padding-inline: 14px;
+    gap: 12px;
+  }
+
+  .topbar-actions {
+    min-width: auto;
   }
 
   .brand small,
   .topbar-cta {
     display: none;
+  }
+
+  .lang-button {
+    min-width: 34px;
+    min-height: 32px;
   }
 
   .hero-form,

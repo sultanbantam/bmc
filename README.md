@@ -31,4 +31,4 @@ window.BMC_API_URL = "https://api.domain-anda.com";
 window.BMC_API_KEY = "";
 ```
 
-Fase berikutnya bisa menambahkan Supabase Auth, Midtrans/Stripe, penyimpanan BMC, RAG pgvector/Pinecone, serta MCP social publishing seperti Kadenzo atau Outpost.
+Fase berikutnya bisa menambahkan Supabase Auth, Midtrans/Stripe, penyimpanan BMC, RAG pgvector/Pinecone, serta MCP social publishing seperti Kadenzo atau Outpost. Rencana knowledge base kurasi buku/paper ada di `docs/curated-knowledge-base.md`.

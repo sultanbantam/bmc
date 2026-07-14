@@ -35,7 +35,7 @@ async function requestBackend(path, payload) {
 }
 
 async function generateBmcViaBackend(idea) {
-  const data = await requestBackend("/api/bmc/generate", { idea });
+  const data = await requestBackend("/api/bmc/generate", { idea, language: state.language });
   return normalizeRemoteBmc(data, idea);
 }
 
@@ -45,7 +45,8 @@ async function answerQuestionWithBackend(question) {
     idea: state.idea,
     bmc: state.bmc,
     risks: state.risks,
-    question
+    question,
+    language: state.language
   });
   return String(data.answer || answerQuestion(question)).trim();
 }
@@ -280,23 +281,256 @@ const defaultRisks = [
   }
 ];
 
-const topics = [
-  "Cara membuat BMC untuk bisnis F&B",
-  "9 blok BMC yang wajib dipahami",
-  "Kesalahan umum saat bikin BMC",
-  "Contoh BMC bisnis kafe sukses",
-  "Revenue streams yang cocok untuk UMKM",
-  "Dari ide ke BMC dalam 5 menit"
-];
+const topicsByLanguage = {
+  id: [
+    "Cara membuat BMC untuk bisnis F&B",
+    "9 blok BMC yang wajib dipahami",
+    "Kesalahan umum saat bikin BMC",
+    "Contoh BMC bisnis kafe sukses",
+    "Revenue streams yang cocok untuk UMKM",
+    "Dari ide ke BMC dalam 5 menit"
+  ],
+  en: [
+    "How to build a BMC for an F&B business",
+    "The 9 BMC blocks every founder should know",
+    "Common mistakes when creating a BMC",
+    "Example BMC for a successful coffee shop",
+    "Revenue streams that fit small businesses",
+    "From business idea to BMC in 5 minutes"
+  ]
+};
 
+const topics = topicsByLanguage.id;
 const platforms = ["Instagram", "LinkedIn", "X", "TikTok", "Facebook"];
+
+const translations = {
+  id: {
+    navPricing: "Harga",
+    navFaq: "FAQ",
+    start: "Mulai",
+    heroEyebrow: "Untuk founder, UMKM, dan ide bisnis tahap awal",
+    heroCopy: "Ubah ide bisnis menjadi Business Model Canvas lengkap dalam beberapa menit, lalu refine dengan chatbot dan siapkan konten sosial media untuk menarik calon pelanggan.",
+    heroIdeaLabel: "Tulis ide bisnis",
+    heroPlaceholder: "Contoh: kedai kopi langganan untuk pekerja hybrid di Jakarta",
+    heroButton: "Buat BMC",
+    metricBlocks: "blok BMC",
+    metricRisks: "risiko utama",
+    metricPlatforms: "platform sosial",
+    workspaceTitle: "Landing Page dengan BMC AI Chatbot",
+    workspaceCopy: "Masukkan ide, rekam suara, atau unggah dokumen. Aplikasi ini menghasilkan BMC terstruktur, asumsi risiko, dan bahan diskusi lanjutan.",
+    inputKicker: "Input ide",
+    inputTitle: "Jelaskan bisnis Anda",
+    ideaLabel: "Ide bisnis",
+    ideaPlaceholder: "Tuliskan target pelanggan, produk, harga, lokasi, masalah yang ingin diselesaikan, atau bahan mentah apa pun yang Anda punya.",
+    generateButton: "Buat BMC",
+    voiceButton: "Suara",
+    uploadButton: "Upload",
+    canvasKicker: "AI generated BMC",
+    canvasTitle: "Business Model Canvas",
+    tabCanvas: "Canvas",
+    tabRisk: "Risiko",
+    tabChat: "Chat",
+    riskKicker: "Assumption radar",
+    riskTitle: "Asumsi paling berisiko",
+    riskCopy: "AI menandai bagian yang perlu diuji sebelum Anda menghabiskan terlalu banyak biaya.",
+    chatLabel: "Tanya AI",
+    chatPlaceholder: "Tanya: revenue stream saya apa yang paling kuat?",
+    chatSubmit: "Kirim",
+    workflowTitle: "Dari ide mentah ke BMC yang bisa diuji",
+    step1Title: "Masukkan konteks",
+    step1Copy: "Teks, suara, atau dokumen menjadi bahan awal untuk memahami masalah, pelanggan, dan penawaran.",
+    step2Title: "Generate 9 blok",
+    step2Copy: "Agent menyusun customer segments, value proposition, channel, revenue, hingga cost structure.",
+    step3Title: "Uji asumsi",
+    step3Copy: "Risiko paling mahal diprioritaskan, lalu AI menyarankan eksperimen sederhana untuk validasi.",
+    socialCopy: "Buat draft konten BMC dan entrepreneurship untuk Instagram, LinkedIn, X, TikTok, dan Facebook. Cocok sebagai lapisan awal sebelum integrasi MCP publishing.",
+    socialTopicLabel: "Topik konten",
+    socialTopicPlaceholder: "Contoh: kesalahan umum saat membuat BMC",
+    socialPlatformLabel: "Platform",
+    socialButton: "Buat 5 Post",
+    featureEyebrow: "Fitur produk",
+    featureTitle: "Dirancang untuk founder yang butuh arah cepat",
+    feature1Title: "Voice input",
+    feature1Copy: "Gunakan Web Speech API untuk menangkap ide saat pengguna belum siap menulis panjang.",
+    feature2Title: "Document intake",
+    feature2Copy: "Unggah brief, catatan, atau deck awal sebagai konteks ide bisnis yang ingin diubah menjadi BMC.",
+    feature3Title: "Risk analysis",
+    feature3Copy: "Agent membantu memisahkan ide yang menarik dari asumsi yang belum terbukti.",
+    feature4Title: "Export ready",
+    feature4Copy: "Output BMC bisa diunduh sebagai Markdown, HTML, atau dicetak menjadi PDF dari browser.",
+    pricingEyebrow: "Monetisasi",
+    pricingTitle: "Paket yang mengikuti brief",
+    price1Copy: "BMC generation, basic AI chat, simpan kanvas, export.",
+    price1Cta: "Coba sekarang",
+    price2Copy: "Pembelian satu kali untuk hasil BMC Indonesia atau $5-10 global.",
+    price3Copy: "Konsultasi langsung dengan founder untuk validasi dan strategi go-to-market.",
+    testimonialEyebrow: "Validasi pasar",
+    testimonialTitle: "Untuk pengguna yang ingin mulai dengan jelas",
+    testimonial1Quote: "Saya bisa melihat pelanggan, channel, dan biaya utama dalam satu layar sebelum mulai produksi.",
+    testimonial1Name: "Rani, founder F&B rumahan",
+    testimonial2Quote: "Bagian risiko membantu tim kami tahu eksperimen apa yang harus diuji minggu ini.",
+    testimonial2Name: "Bagas, mentor inkubator",
+    testimonial3Quote: "Konten sosialnya membuat edukasi BMC jadi konsisten tanpa mulai dari halaman kosong.",
+    testimonial3Name: "Nadia, konsultan UMKM",
+    faqTitle: "Pertanyaan umum",
+    faq1Question: "Apakah ini sudah memakai API OpenAI atau Claude?",
+    faq1Answer: "Frontend tetap punya fallback offline, dan backend Express sudah tersedia untuk memakai OpenAI API jika config.js diarahkan ke domain API Contabo.",
+    faq2Question: "Apakah social agent langsung publish?",
+    faq2Answer: "Prototype ini membuat draft, jadwal, dan saran visual. Untuk publish otomatis, integrasikan MCP seperti Kadenzo atau Outpost dengan kredensial platform sosial.",
+    faq3Question: "Apakah bisa dipakai untuk pasar Indonesia dan global?",
+    faq3Answer: "Ya. Konten default berbahasa Indonesia dan paket global sudah disiapkan dalam pricing. Copy dan prompt bisa dibuat bilingual pada fase berikutnya.",
+    finalTitle: "Mulai Sekarang - Gratis Coba 7 Hari",
+    finalCopy: "Uji ide pertama Anda, lihat risiko asumsi, lalu ubah insight menjadi konten akuisisi.",
+    finalButton: "Buat BMC pertama",
+    statusReady: "Siap",
+    statusSaved: "Tersimpan",
+    statusFillIdea: "Isi ide dulu",
+    statusProcessing: "Memproses",
+    statusProcessingAi: "Memproses AI",
+    statusBmcReady: "BMC siap",
+    statusFallback: "Fallback lokal",
+    statusChatProcessing: "Memproses chat",
+    statusChatReady: "Chat siap",
+    statusVoiceUnavailable: "Voice tidak tersedia",
+    statusListening: "Mendengar",
+    statusVoiceCaptured: "Suara masuk",
+    statusVoiceFailed: "Voice gagal",
+    statusFileRead: "File dibaca",
+    statusFileAccepted: "File diterima",
+    statusExportReady: "Export dibuat",
+    chatPending: "Memproses jawaban...",
+    chatIntro: "Saya siap membantu refine BMC Anda. Coba tanya: \"Apa langkah 30 hari pertama?\", \"Berapa harga paket yang masuk akal?\", \"Asumsi paling berisiko apa?\", atau klik Refine pada salah satu blok.",
+    fallbackNotice: "Backend belum bisa dihubungi ({message}). BMC ini dibuat dengan fallback lokal dulu. Setelah API Contabo aktif dan HTTPS/CORS benar, hasil akan memakai backend AI.",
+    chatFallbackNotice: "Catatan: backend belum bisa dihubungi ({message}). Saya pakai fallback lokal dulu.",
+    voiceUnsupported: "Browser ini belum mendukung Web Speech API. Anda tetap bisa mengetik ide di kolom input.",
+    fileContext: "Konteks dokumen: {file}. Prototype offline ini menerima file tersebut sebagai sinyal konteks; parsing PDF/DOCX/PPTX perlu backend parser seperti pdf-parse, mammoth.js, atau extractor deck.",
+    userLabel: "Anda",
+    whyLabel: "Mengapa",
+    testLabel: "Cara uji",
+    refineButton: "Refine",
+    refinePrompt: "Refine {block} saya",
+    socialHashtags: "Hashtags",
+    socialVisual: "Visual",
+    socialSchedule: "Jadwal"
+  },
+  en: {
+    navPricing: "Pricing",
+    navFaq: "FAQ",
+    start: "Start",
+    heroEyebrow: "For founders, SMEs, and early-stage business ideas",
+    heroCopy: "Turn a raw business idea into a complete Business Model Canvas in minutes, refine it with the chatbot, and prepare social content to attract potential customers.",
+    heroIdeaLabel: "Write your business idea",
+    heroPlaceholder: "Example: subscription coffee shop for hybrid workers in Jakarta",
+    heroButton: "Create BMC",
+    metricBlocks: "BMC blocks",
+    metricRisks: "key risks",
+    metricPlatforms: "social platforms",
+    workspaceTitle: "Landing Page with BMC AI Chatbot",
+    workspaceCopy: "Enter an idea, record your voice, or upload a document. The app produces a structured BMC, risk assumptions, and follow-up discussion material.",
+    inputKicker: "Idea input",
+    inputTitle: "Describe your business",
+    ideaLabel: "Business idea",
+    ideaPlaceholder: "Write your target customer, product, pricing, location, problem to solve, or any raw context you already have.",
+    generateButton: "Create BMC",
+    voiceButton: "Voice",
+    uploadButton: "Upload",
+    canvasKicker: "AI generated BMC",
+    canvasTitle: "Business Model Canvas",
+    tabCanvas: "Canvas",
+    tabRisk: "Risk",
+    tabChat: "Chat",
+    riskKicker: "Assumption radar",
+    riskTitle: "Riskiest assumptions",
+    riskCopy: "AI highlights what should be tested before you spend too much money.",
+    chatLabel: "Ask AI",
+    chatPlaceholder: "Ask: which revenue stream is strongest?",
+    chatSubmit: "Send",
+    workflowTitle: "From raw idea to a testable BMC",
+    step1Title: "Add context",
+    step1Copy: "Text, voice, or documents become the starting material for understanding the problem, customer, and offer.",
+    step2Title: "Generate 9 blocks",
+    step2Copy: "The agent drafts customer segments, value proposition, channels, revenue, cost structure, and more.",
+    step3Title: "Test assumptions",
+    step3Copy: "The most expensive risks are prioritized, then AI suggests simple validation experiments.",
+    socialCopy: "Create BMC and entrepreneurship content drafts for Instagram, LinkedIn, X, TikTok, and Facebook before publishing integrations are added.",
+    socialTopicLabel: "Content topic",
+    socialTopicPlaceholder: "Example: common mistakes when creating a BMC",
+    socialPlatformLabel: "Platform",
+    socialButton: "Create 5 Posts",
+    featureEyebrow: "Product features",
+    featureTitle: "Designed for founders who need clarity fast",
+    feature1Title: "Voice input",
+    feature1Copy: "Use the Web Speech API to capture ideas when users are not ready to write a long brief.",
+    feature2Title: "Document intake",
+    feature2Copy: "Upload briefs, notes, or early decks as business context to convert into a BMC.",
+    feature3Title: "Risk analysis",
+    feature3Copy: "The agent separates attractive ideas from assumptions that still need evidence.",
+    feature4Title: "Export ready",
+    feature4Copy: "BMC output can be downloaded as Markdown, HTML, or printed to PDF from the browser.",
+    pricingEyebrow: "Monetization",
+    pricingTitle: "Plans aligned with the product brief",
+    price1Copy: "BMC generation, basic AI chat, saved canvas, and export.",
+    price1Cta: "Try now",
+    price2Copy: "One-time purchase for Indonesian BMC output or $5-10 global output.",
+    price3Copy: "Live consulting with the founder for validation and go-to-market strategy.",
+    testimonialEyebrow: "Market validation",
+    testimonialTitle: "For users who want to start clearly",
+    testimonial1Quote: "I can see customers, channels, and key costs on one screen before starting production.",
+    testimonial1Name: "Rani, home F&B founder",
+    testimonial2Quote: "The risk section helps our team know which experiment to run this week.",
+    testimonial2Name: "Bagas, incubator mentor",
+    testimonial3Quote: "The social content keeps BMC education consistent without starting from a blank page.",
+    testimonial3Name: "Nadia, SME consultant",
+    faqTitle: "Common questions",
+    faq1Question: "Does this already use the OpenAI or Claude API?",
+    faq1Answer: "The frontend still has an offline fallback, and the Express backend is ready to use the OpenAI API when config.js points to the Contabo API domain.",
+    faq2Question: "Does the social agent publish automatically?",
+    faq2Answer: "This prototype creates drafts, schedules, and visual suggestions. For automatic publishing, integrate MCP tools such as Kadenzo or Outpost with social platform credentials.",
+    faq3Question: "Can it be used for Indonesian and global markets?",
+    faq3Answer: "Yes. The app now supports Indonesian and English UI/output, with global pricing prepared in the product brief.",
+    finalTitle: "Start Now - Free 7-Day Trial",
+    finalCopy: "Test your first idea, review risky assumptions, then turn insights into acquisition content.",
+    finalButton: "Create first BMC",
+    statusReady: "Ready",
+    statusSaved: "Saved",
+    statusFillIdea: "Add an idea first",
+    statusProcessing: "Processing",
+    statusProcessingAi: "Processing AI",
+    statusBmcReady: "BMC ready",
+    statusFallback: "Local fallback",
+    statusChatProcessing: "Processing chat",
+    statusChatReady: "Chat ready",
+    statusVoiceUnavailable: "Voice unavailable",
+    statusListening: "Listening",
+    statusVoiceCaptured: "Voice captured",
+    statusVoiceFailed: "Voice failed",
+    statusFileRead: "File read",
+    statusFileAccepted: "File accepted",
+    statusExportReady: "Export ready",
+    chatPending: "Processing answer...",
+    chatIntro: "I am ready to help refine your BMC. Try asking: \"What are the first 30-day actions?\", \"What package price makes sense?\", \"Which assumption is riskiest?\", or click Refine on any block.",
+    fallbackNotice: "The backend could not be reached ({message}). This BMC was created with the local fallback. Once the Contabo API, HTTPS, and CORS are ready, results will use backend AI.",
+    chatFallbackNotice: "Note: the backend could not be reached ({message}). I used the local fallback for now.",
+    voiceUnsupported: "This browser does not support the Web Speech API yet. You can still type your idea in the input field.",
+    fileContext: "Document context: {file}. This offline prototype accepts the file as a context signal; PDF/DOCX/PPTX parsing needs a backend parser such as pdf-parse, mammoth.js, or a deck extractor.",
+    userLabel: "You",
+    whyLabel: "Why",
+    testLabel: "How to test",
+    refineButton: "Refine",
+    refinePrompt: "Refine my {block}",
+    socialHashtags: "Hashtags",
+    socialVisual: "Visual",
+    socialSchedule: "Schedule"
+  }
+};
 
 const state = {
   bmc: cloneData(defaultBmc),
   risks: cloneData(defaultRisks),
   idea: "",
+  language: "id",
   selectedPlatforms: new Set(["Instagram", "LinkedIn", "X"]),
-  selectedTopic: topics[0]
+  selectedTopic: topicsByLanguage.id[0]
 };
 
 const els = {
@@ -318,18 +552,20 @@ const els = {
   platformRow: document.querySelector("#platform-row"),
   topicInput: document.querySelector("#topic-input"),
   postBoard: document.querySelector("#post-board"),
-  generatePosts: document.querySelector("#generate-posts")
+  generatePosts: document.querySelector("#generate-posts"),
+  languageButtons: document.querySelectorAll(".lang-button")
 };
 
 function init() {
   restoreState();
+  applyLanguage();
   renderCanvas();
   renderRisks();
   renderChatIntro();
   renderSocialControls();
   renderPosts(generatePosts());
   bindEvents();
-  setStatus("Siap");
+  setStatus(t("statusReady"));
 }
 
 function bindEvents() {
@@ -344,6 +580,10 @@ function bindEvents() {
   });
 
   els.generateBtn.addEventListener("click", generateBmcFromInput);
+
+  els.languageButtons.forEach((button) => {
+    button.addEventListener("click", () => setLanguage(button.dataset.lang));
+  });
 
   document.querySelectorAll(".prompt-chip").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -364,16 +604,16 @@ function bindEvents() {
     els.chatInput.value = "";
     switchTab("chat");
 
-    const pending = addMessage("ai", "Memproses jawaban...");
-    setStatus("Memproses chat");
+    const pending = addMessage("ai", t("chatPending"));
+    setStatus(t("statusChatProcessing"));
 
     try {
       const answer = await answerQuestionWithBackend(question);
       updateMessage(pending, "ai", answer);
-      setStatus("Chat siap");
+      setStatus(t("statusChatReady"));
     } catch (error) {
-      updateMessage(pending, "ai", `${answerQuestion(question)}\n\nCatatan: backend belum bisa dihubungi (${error.message}). Saya pakai fallback lokal dulu.`);
-      setStatus("Fallback lokal");
+      updateMessage(pending, "ai", `${answerQuestion(question)}\n\n${interpolate(t("chatFallbackNotice"), { message: error.message })}`);
+      setStatus(t("statusFallback"));
     }
   });
 
@@ -384,7 +624,7 @@ function bindEvents() {
   document.querySelector("#print-pdf").addEventListener("click", () => window.print());
   els.generatePosts.addEventListener("click", () => renderPosts(generatePosts()));
   els.topicInput.addEventListener("input", () => {
-    state.selectedTopic = els.topicInput.value.trim() || topics[0];
+    state.selectedTopic = els.topicInput.value.trim() || getTopics()[0];
   });
 }
 
@@ -395,6 +635,7 @@ function restoreState() {
     state.bmc = saved.bmc || state.bmc;
     state.risks = saved.risks || state.risks;
     state.idea = saved.idea || "";
+    state.language = ["id", "en"].includes(saved.language) ? saved.language : "id";
     els.ideaInput.value = state.idea;
   } catch {
     localStorage.removeItem("bmc-ai-platform");
@@ -407,14 +648,150 @@ function persistState() {
     JSON.stringify({
       bmc: state.bmc,
       risks: state.risks,
-      idea: state.idea
+      idea: state.idea,
+      language: state.language
     })
   );
-  setStatus("Tersimpan");
+  setStatus(t("statusSaved"));
 }
 
 function setStatus(text) {
   els.saveStatus.textContent = text;
+}
+
+function t(key) {
+  return translations[state.language]?.[key] || translations.id[key] || key;
+}
+
+function getTopics() {
+  return topicsByLanguage[state.language] || topicsByLanguage.id;
+}
+
+function setLanguage(language) {
+  if (!["id", "en"].includes(language) || language === state.language) return;
+  state.language = language;
+  const defaults = [...topicsByLanguage.id, ...topicsByLanguage.en];
+  if (!els.topicInput.value.trim() || defaults.includes(state.selectedTopic)) {
+    state.selectedTopic = getTopics()[0];
+    els.topicInput.value = "";
+  }
+  applyLanguage();
+  renderCanvas();
+  renderRisks();
+  renderChatIntro();
+  renderSocialControls();
+  renderPosts(generatePosts());
+  persistState();
+  setStatus(t("statusReady"));
+}
+
+function applyLanguage() {
+  document.documentElement.lang = state.language === "en" ? "en" : "id";
+  els.languageButtons.forEach((button) => {
+    const active = button.dataset.lang === state.language;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  const textTargets = [
+    ['.nav-links a[href="#pricing"]', 'navPricing'],
+    ['.nav-links a[href="#faq"]', 'navFaq'],
+    [".topbar-cta", "start"],
+    [".hero .eyebrow", "heroEyebrow"],
+    [".hero-copy", "heroCopy"],
+    [".hero-form label", "heroIdeaLabel"],
+    [".hero-form button", "heroButton"],
+    [".hero-metrics span:nth-child(1)", "metricBlocks", (value) => `<strong>9</strong> ${value}`],
+    [".hero-metrics span:nth-child(2)", "metricRisks", (value) => `<strong>3</strong> ${value}`],
+    [".hero-metrics span:nth-child(3)", "metricPlatforms", (value) => `<strong>5</strong> ${value}`],
+    ["#workspace .section-heading h2", "workspaceTitle"],
+    ["#workspace .section-heading p:last-child", "workspaceCopy"],
+    [".panel-header .panel-kicker", "inputKicker"],
+    [".panel-header h3", "inputTitle"],
+    ['label[for="idea-input"]', "ideaLabel"],
+    ["#generate-btn span:last-child", "generateButton"],
+    ["#voice-btn span:last-child", "voiceButton"],
+    [".file-button span:last-of-type", "uploadButton"],
+    [".canvas-toolbar .panel-kicker", "canvasKicker"],
+    ['.tab-button[data-tab="canvas"]', "tabCanvas"],
+    ['.tab-button[data-tab="risk"]', "tabRisk"],
+    ['.tab-button[data-tab="chat"]', "tabChat"],
+    ["#tab-risk .panel-kicker", "riskKicker"],
+    ["#tab-risk h3", "riskTitle"],
+    ["#tab-risk .muted", "riskCopy"],
+    ['label[for="chat-input"]', "chatLabel"],
+    [".chat-form button", "chatSubmit"],
+    ["#how-it-works .section-heading h2", "workflowTitle"],
+    [".step-grid article:nth-child(1) h3", "step1Title"],
+    [".step-grid article:nth-child(1) p", "step1Copy"],
+    [".step-grid article:nth-child(2) h3", "step2Title"],
+    [".step-grid article:nth-child(2) p", "step2Copy"],
+    [".step-grid article:nth-child(3) h3", "step3Title"],
+    [".step-grid article:nth-child(3) p", "step3Copy"],
+    ["#social-agent .section-heading p:last-child", "socialCopy"],
+    ['label[for="topic-input"]', "socialTopicLabel"],
+    [".social-controls label:nth-of-type(2)", "socialPlatformLabel"],
+    ["#generate-posts span:last-child", "socialButton"],
+    ["#features .section-heading .eyebrow", "featureEyebrow"],
+    ["#features .section-heading h2", "featureTitle"],
+    [".feature-grid article:nth-child(1) h3", "feature1Title"],
+    [".feature-grid article:nth-child(1) p", "feature1Copy"],
+    [".feature-grid article:nth-child(2) h3", "feature2Title"],
+    [".feature-grid article:nth-child(2) p", "feature2Copy"],
+    [".feature-grid article:nth-child(3) h3", "feature3Title"],
+    [".feature-grid article:nth-child(3) p", "feature3Copy"],
+    [".feature-grid article:nth-child(4) h3", "feature4Title"],
+    [".feature-grid article:nth-child(4) p", "feature4Copy"],
+    ["#pricing .section-heading .eyebrow", "pricingEyebrow"],
+    ["#pricing .section-heading h2", "pricingTitle"],
+    [".pricing-grid article:nth-child(1) p", "price1Copy"],
+    [".pricing-grid article:nth-child(1) a", "price1Cta"],
+    [".pricing-grid article:nth-child(2) p", "price2Copy"],
+    [".pricing-grid article:nth-child(3) p", "price3Copy"],
+    ["#testimonials .section-heading .eyebrow", "testimonialEyebrow"],
+    ["#testimonials .section-heading h2", "testimonialTitle"],
+    [".testimonial-grid figure:nth-child(1) blockquote", "testimonial1Quote", (value) => `"${value}"`],
+    [".testimonial-grid figure:nth-child(1) figcaption", "testimonial1Name"],
+    [".testimonial-grid figure:nth-child(2) blockquote", "testimonial2Quote", (value) => `"${value}"`],
+    [".testimonial-grid figure:nth-child(2) figcaption", "testimonial2Name"],
+    [".testimonial-grid figure:nth-child(3) blockquote", "testimonial3Quote", (value) => `"${value}"`],
+    [".testimonial-grid figure:nth-child(3) figcaption", "testimonial3Name"],
+    ["#faq .section-heading h2", "faqTitle"],
+    [".faq-list details:nth-child(1) summary", "faq1Question"],
+    [".faq-list details:nth-child(1) p", "faq1Answer"],
+    [".faq-list details:nth-child(2) summary", "faq2Question"],
+    [".faq-list details:nth-child(2) p", "faq2Answer"],
+    [".faq-list details:nth-child(3) summary", "faq3Question"],
+    [".faq-list details:nth-child(3) p", "faq3Answer"],
+    [".final-cta h2", "finalTitle"],
+    [".final-cta p", "finalCopy"],
+    [".final-cta a", "finalButton"]
+  ];
+
+  textTargets.forEach(([selector, key, render]) => {
+    const element = document.querySelector(selector);
+    if (!element) return;
+    const value = t(key);
+    if (render) element.innerHTML = render(value);
+    else element.textContent = value;
+  });
+
+  const placeholderTargets = [
+    [els.heroIdea, "heroPlaceholder"],
+    [els.ideaInput, "ideaPlaceholder"],
+    [els.chatInput, "chatPlaceholder"],
+    [els.topicInput, "socialTopicPlaceholder"]
+  ];
+  placeholderTargets.forEach(([element, key]) => {
+    if (element) element.setAttribute("placeholder", t(key));
+  });
+
+  if (!state.idea) els.canvasTitle.textContent = t("canvasTitle");
+  setStatus(t("statusReady"));
+}
+
+function interpolate(template, values) {
+  return Object.entries(values).reduce((result, [key, value]) => result.replaceAll(`{${key}}`, value), template);
 }
 
 function switchTab(tab) {
@@ -429,13 +806,13 @@ function switchTab(tab) {
 async function generateBmcFromInput() {
   const idea = els.ideaInput.value.trim();
   if (!idea) {
-    setStatus("Isi ide dulu");
+    setStatus(t("statusFillIdea"));
     els.ideaInput.focus();
     return;
   }
 
   state.idea = idea;
-  setStatus(hasBackendConfig() ? "Memproses AI" : "Memproses");
+  setStatus(hasBackendConfig() ? t("statusProcessingAi") : t("statusProcessing"));
   els.generateBtn.disabled = true;
 
   let fallbackNotice = "";
@@ -450,7 +827,7 @@ async function generateBmcFromInput() {
     }
   } catch (error) {
     useLocalBmc(idea);
-    fallbackNotice = `Backend belum bisa dihubungi (${error.message}). BMC ini dibuat dengan fallback lokal dulu. Setelah API Contabo aktif dan HTTPS/CORS benar, hasil akan memakai backend AI.`;
+    fallbackNotice = interpolate(t("fallbackNotice"), { message: error.message });
   } finally {
     els.generateBtn.disabled = false;
   }
@@ -460,7 +837,7 @@ async function generateBmcFromInput() {
   renderChatIntro();
   if (fallbackNotice) addMessage("ai", fallbackNotice);
   persistState();
-  setStatus(fallbackNotice ? "Fallback lokal" : "BMC siap");
+  setStatus(fallbackNotice ? t("statusFallback") : t("statusBmcReady"));
   switchTab(fallbackNotice ? "chat" : "canvas");
 }
 
@@ -683,9 +1060,10 @@ function renderCanvas() {
       li.textContent = item;
       list.append(li);
     });
+    node.querySelector(".block-refine").textContent = t("refineButton");
     node.querySelector(".block-refine").addEventListener("click", () => {
       switchTab("chat");
-      const prompt = `Refine ${block.title} saya`;
+      const prompt = interpolate(t("refinePrompt"), { block: block.title });
       els.chatInput.value = prompt;
       els.chatInput.focus();
     });
@@ -700,8 +1078,8 @@ function renderRisks() {
     article.className = "risk-card";
     article.innerHTML = `
       <h4>${index + 1}. ${escapeHtml(risk.title)}</h4>
-      <p><strong>Mengapa:</strong> ${escapeHtml(risk.why)}</p>
-      <p><strong>Cara uji:</strong> ${escapeHtml(risk.test)}</p>
+      <p><strong>${t("whyLabel")}:</strong> ${escapeHtml(risk.why)}</p>
+      <p><strong>${t("testLabel")}:</strong> ${escapeHtml(risk.test)}</p>
     `;
     els.riskList.append(article);
   });
@@ -709,7 +1087,7 @@ function renderRisks() {
 
 function renderChatIntro() {
   els.chatLog.innerHTML = "";
-  addMessage("ai", "Saya siap membantu refine BMC Anda. Coba tanya: \"Apa langkah 30 hari pertama?\", \"Berapa harga paket yang masuk akal?\", \"Asumsi paling berisiko apa?\", atau klik Refine pada salah satu blok.");
+  addMessage("ai", t("chatIntro"));
 }
 
 function addMessage(role, text) {
@@ -722,12 +1100,14 @@ function addMessage(role, text) {
 }
 
 function updateMessage(message, role, text) {
-  const label = role === "ai" ? "BMC AI" : "Anda";
+  const label = role === "ai" ? "BMC AI" : t("userLabel");
   message.innerHTML = `<strong>${label}</strong>${formatChatText(text)}`;
   els.chatLog.scrollTop = els.chatLog.scrollHeight;
 }
 
 function answerQuestion(question) {
+  if (state.language === "en") return answerQuestionEnglish(question);
+
   const lower = question.toLowerCase();
   const sector = detectSector(state.idea || "");
   const context = extractContext(state.idea || "", sector);
@@ -763,6 +1143,70 @@ function answerQuestion(question) {
   return buildActionPlanResponse(sector, context);
 }
 
+function answerQuestionEnglish(question) {
+  const lower = question.toLowerCase();
+  const sector = detectSector(state.idea || "");
+  const context = extractContext(state.idea || "", sector);
+  const riskList = state.risks.length ? state.risks : buildRisks(state.idea || "", sector);
+
+  if (lower.includes("step") || lower.includes("action") || lower.includes("30 day") || lower.includes("start") || lower.includes("execute")) {
+    return buildActionPlanResponseEnglish(sector, context);
+  }
+
+  if (lower.includes("risk") || lower.includes("assumption")) {
+    return `The three assumptions to test first:\n\n1. ${riskList[0].title}\nHow to test: ${riskList[0].test}\n\n2. ${riskList[1].title}\nHow to test: ${riskList[1].test}\n\n3. ${riskList[2].title}\nHow to test: ${riskList[2].test}`;
+  }
+
+  if (lower.includes("price") || lower.includes("pricing") || lower.includes("revenue")) {
+    if (sector.name === "tourism") {
+      return "For an eco-tourism business, start from cost per participant: guide, meals, homestay, local transport, community contribution, documentation, cleaning, and risk buffer. Test three packages first: one-day, overnight, and school/corporate group. Ask for a deposit before preparing full operations so demand is proven early.";
+    }
+    return "Start with three price levels: entry for quick validation, pro for recurring users, and premium for intensive help. Measure willingness to pay with pre-orders or paid pilots, not opinion surveys.";
+  }
+
+  if (lower.includes("mvp") || lower.includes("pilot") || lower.includes("first")) {
+    if (sector.name === "tourism") {
+      return "The lightest eco-tourism MVP is one pilot package for 10-15 participants, one safe route, one lead guide, one local meal option, a visitor ethics briefing, and a feedback form. Do not launch many packages yet. The goal is to prove itinerary, pricing, safety, and satisfaction.";
+    }
+    return "The lightest MVP is a landing page, one clear CTA, 10-20 customer interviews, and one manual concierge-style output. Automate only after you see repeated demand.";
+  }
+
+  const block = blocks.find((item) => blockSynonyms[item.key].some((word) => lower.includes(word)) || lower.includes(item.title.toLowerCase()));
+  if (block) {
+    const points = state.bmc[block.key] || [];
+    return `For ${block.title}, the current direction is:\n\n${points.map((point, index) => `${index + 1}. ${point}`).join("\n")}\n\nExecution advice: ${blockActionAdviceEnglish(block, sector, context)}`;
+  }
+
+  return buildActionPlanResponseEnglish(sector, context);
+}
+
+function buildActionPlanResponseEnglish(sector, context) {
+  if (sector.name === "tourism") {
+    return `30-day plan to make ${context.product} in ${context.location} easier to run:\n\nWeek 1 - Local validation\n1. Meet community leaders, potential guides, homestay owners, and local SMEs.\n2. Map tourism assets, restrictions, visitor capacity, safe routes, and benefit sharing.\n3. Choose one safe pilot package.\n\nWeek 2 - Shape the offer\n1. Create one-day and overnight packages with itinerary, price, cost, margin, and risk checklist.\n2. Prepare WhatsApp Business, booking form, a simple catalog, and 10 authentic photos/videos.\n3. Draft visitor ethics briefing and bad-weather SOP.\n\nWeek 3 - Find early buyers\n1. Contact 30 targets: travel communities, campuses, schools, offices, and local creators.\n2. Offer a limited pilot trip for 10-15 people with deposit.\n3. Track chats, deposits, objections, and frequently asked questions.\n\nWeek 4 - Run pilot and improve\n1. Run the small trip, record actual costs and operational issues.\n2. Ask for Google/Instagram reviews and short video testimonials.\n3. Revise price, itinerary, SOP, and capacity before scaling promotion.\n\nMain metrics: deposits collected, margin per participant, experience rating, repeat/referral intent, and number of local people/SMEs who benefit.`;
+  }
+
+  return "30-day plan: week 1 interview 15 potential customers, week 2 create a landing page and offer, week 3 run a small pre-order or pilot, week 4 evaluate conversion, margin, and feedback, then decide whether to continue, narrow the segment, or change the value proposition.";
+}
+
+function blockActionAdviceEnglish(block, sector, context) {
+  if (sector.name !== "tourism") {
+    return "Turn this block into one practical decision, then validate it within 7 days through interviews, a landing page, pre-order, a small pilot, or real cost data.";
+  }
+
+  const advice = {
+    customerSegments: "Start with one reachable segment, such as Jabodetabek travel communities or campuses around Banten. Build a list of 30 potential buyers and contact them directly.",
+    valuePropositions: `Make the value proposition concrete: itinerary, duration, price, inclusions/exclusions, local impact, visitor rules, and why ${context.location} is different from ordinary tourism.`,
+    channels: "Prioritize WhatsApp booking, Instagram/TikTok short videos, Google Maps, and community partners. First content should answer access, price, activities, safety, and visitor ethics.",
+    customerRelationships: "Build trust through fast WhatsApp responses, pre-trip briefing, friendly guides, post-trip documentation, and review/referral follow-up within 24 hours.",
+    revenueStreams: "Calculate cost per participant first. Build one-day, overnight, and group packages. Use deposits to prove demand before preparing food, guides, and homestays.",
+    keyActivities: "The key activity is not large-scale promotion yet; validate local permission, safety SOP, package design, pilot trip, then content and partnerships.",
+    keyResources: "The most important assets are community trust, local guides, cultural stories, SOPs, and authentic content. Without them, eco-tourism feels like a generic trip.",
+    keyPartnerships: "Create a simple written agreement with local leaders, guides, homestays, SMEs, transport providers, and community partners so roles and benefit sharing are clear.",
+    costStructure: "Separate variable cost per participant from fixed costs. This reveals the minimum participant count per trip and prevents a popular package from losing money."
+  };
+  return advice[block.key] || advice.keyActivities;
+}
+
 function buildActionPlanResponse(sector, context) {
   if (sector.name === "tourism") {
     return `Rencana 30 hari untuk membuat ${context.product} di ${context.location} lebih siap dijalankan:\n\nMinggu 1 - Validasi lokal\n1. Temui tokoh adat/desa, calon guide, pemilik homestay, dan UMKM lokal.\n2. Catat aset wisata, larangan, kapasitas kunjungan, rute aman, dan siapa mendapat manfaat.\n3. Pilih 1 paket pilot yang paling aman dijalankan.\n\nMinggu 2 - Bentuk produk\n1. Buat paket one-day dan overnight lengkap dengan rundown, harga, HPP, margin, dan checklist risiko.\n2. Siapkan WhatsApp Business, Google Form booking, katalog sederhana, dan 10 foto/video asli.\n3. Buat script briefing etika kunjungan dan SOP cuaca buruk.\n\nMinggu 3 - Cari pembeli awal\n1. Hubungi 30 target: komunitas traveler, kampus, sekolah, kantor, dan creator lokal.\n2. Tawarkan pilot trip terbatas 10-15 orang dengan DP.\n3. Ukur jumlah chat masuk, DP, alasan menolak, dan pertanyaan paling sering.\n\nMinggu 4 - Pilot dan perbaikan\n1. Jalankan trip kecil, rekam biaya aktual dan masalah operasional.\n2. Minta review Google/Instagram dan testimoni video pendek.\n3. Revisi harga, itinerary, SOP, dan kapasitas sebelum promosi lebih besar.\n\nMetrik utama: DP terkumpul, margin per peserta, rating pengalaman, repeat/referral intent, dan jumlah warga/UMKM yang mendapat manfaat.`;
@@ -792,25 +1236,25 @@ function blockActionAdvice(block, sector, context) {
 function startVoiceInput() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    setStatus("Voice tidak tersedia");
-    addMessage("ai", "Browser ini belum mendukung Web Speech API. Anda tetap bisa mengetik ide di kolom input.");
+    setStatus(t("statusVoiceUnavailable"));
+    addMessage("ai", t("voiceUnsupported"));
     switchTab("chat");
     return;
   }
 
   const recognition = new SpeechRecognition();
-  recognition.lang = "id-ID";
+  recognition.lang = state.language === "en" ? "en-US" : "id-ID";
   recognition.interimResults = false;
   recognition.maxAlternatives = 1;
-  setStatus("Mendengar");
+  setStatus(t("statusListening"));
   recognition.start();
   recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript;
     els.ideaInput.value = `${els.ideaInput.value} ${transcript}`.trim();
-    setStatus("Suara masuk");
+    setStatus(t("statusVoiceCaptured"));
   };
-  recognition.onerror = () => setStatus("Voice gagal");
-  recognition.onend = () => setTimeout(() => setStatus("Siap"), 1200);
+  recognition.onerror = () => setStatus(t("statusVoiceFailed"));
+  recognition.onend = () => setTimeout(() => setStatus(t("statusReady")), 1200);
 }
 
 function handleFile(event) {
@@ -821,12 +1265,12 @@ function handleFile(event) {
     const reader = new FileReader();
     reader.onload = () => {
       els.ideaInput.value = `${els.ideaInput.value}\n\n${reader.result}`.trim();
-      setStatus("File dibaca");
+      setStatus(t("statusFileRead"));
     };
     reader.readAsText(file);
   } else {
-    els.ideaInput.value = `${els.ideaInput.value}\n\nKonteks dokumen: ${file.name}. Prototype offline ini menerima file tersebut sebagai sinyal konteks; parsing PDF/DOCX/PPTX perlu backend parser seperti pdf-parse, mammoth.js, atau extractor deck.`.trim();
-    setStatus("File diterima");
+    els.ideaInput.value = `${els.ideaInput.value}\n\n${interpolate(t("fileContext"), { file: file.name })}`.trim();
+    setStatus(t("statusFileAccepted"));
   }
 }
 
@@ -834,7 +1278,7 @@ function toMarkdown() {
   const lines = [
     "# Business Model Canvas",
     "",
-    state.idea ? `Ide bisnis: ${state.idea}` : "",
+    state.idea ? `${state.language === "en" ? "Business idea" : "Ide bisnis"}: ${state.idea}` : "",
     ""
   ];
   blocks.forEach((block) => {
@@ -842,11 +1286,11 @@ function toMarkdown() {
     (state.bmc[block.key] || []).forEach((item) => lines.push(`- ${item}`));
     lines.push("");
   });
-  lines.push("## Risky Assumptions");
+  lines.push(`## ${state.language === "en" ? "Risky Assumptions" : "Asumsi Berisiko"}`);
   state.risks.forEach((risk, index) => {
     lines.push(`${index + 1}. ${risk.title}`);
-    lines.push(`   - Mengapa: ${risk.why}`);
-    lines.push(`   - Cara uji: ${risk.test}`);
+    lines.push(`   - ${t("whyLabel")}: ${risk.why}`);
+    lines.push(`   - ${t("testLabel")}: ${risk.test}`);
   });
   return lines.filter((line, index, arr) => !(line === "" && arr[index - 1] === "")).join("\n");
 }
@@ -861,7 +1305,7 @@ function toStandaloneHtml() {
   const riskHtml = state.risks
     .map((risk) => `<li><strong>${escapeHtml(risk.title)}</strong><br>${escapeHtml(risk.why)}<br><em>${escapeHtml(risk.test)}</em></li>`)
     .join("");
-  return `<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Business Model Canvas</title><style>body{font-family:Arial,sans-serif;line-height:1.55;max-width:980px;margin:40px auto;padding:0 18px;color:#17211f}section{border:1px solid #dce4df;border-radius:8px;padding:16px;margin:12px 0}h1,h2{line-height:1.1}</style></head><body><h1>Business Model Canvas</h1><p>${escapeHtml(state.idea || "")}</p>${blockHtml}<section><h2>Risky Assumptions</h2><ol>${riskHtml}</ol></section></body></html>`;
+  return `<!doctype html><html lang="${state.language}"><head><meta charset="utf-8"><title>Business Model Canvas</title><style>body{font-family:Arial,sans-serif;line-height:1.55;max-width:980px;margin:40px auto;padding:0 18px;color:#17211f}section{border:1px solid #dce4df;border-radius:8px;padding:16px;margin:12px 0}h1,h2{line-height:1.1}</style></head><body><h1>Business Model Canvas</h1><p>${escapeHtml(state.idea || "")}</p>${blockHtml}<section><h2>${state.language === "en" ? "Risky Assumptions" : "Asumsi Berisiko"}</h2><ol>${riskHtml}</ol></section></body></html>`;
 }
 
 function downloadFile(filename, content, type) {
@@ -874,12 +1318,12 @@ function downloadFile(filename, content, type) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  setStatus("Export dibuat");
+  setStatus(t("statusExportReady"));
 }
 
 function renderSocialControls() {
   els.topicRow.innerHTML = "";
-  topics.forEach((topic) => {
+  getTopics().forEach((topic) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `topic-chip${topic === state.selectedTopic ? " active" : ""}`;
@@ -909,35 +1353,63 @@ function renderSocialControls() {
 }
 
 function generatePosts() {
-  const topic = els.topicInput.value.trim() || state.selectedTopic || topics[0];
+  const topic = els.topicInput.value.trim() || state.selectedTopic || getTopics()[0];
   const selected = Array.from(state.selectedPlatforms);
-  const templates = [
-    {
-      hook: "Banyak bisnis gagal bukan karena idenya jelek, tapi karena modelnya belum jelas.",
-      angle: "Pakai BMC untuk melihat pelanggan, nilai, channel, dan revenue dalam satu halaman.",
-      cta: "Tulis satu ide Anda hari ini, lalu ubah menjadi 9 blok."
-    },
-    {
-      hook: "Satu pertanyaan yang sering menghemat biaya founder: siapa pelanggan pertama yang paling spesifik?",
-      angle: "BMC memaksa kita memilih segmen, bukan mengejar semua orang.",
-      cta: "Mulai dari segmen paling sempit, lalu validasi dengan wawancara."
-    },
-    {
-      hook: "Revenue stream bukan sekadar harga.",
-      angle: "Anda bisa menguji langganan, paket output, komisi, bundling, atau konsultasi premium.",
-      cta: "Pilih satu yang paling mudah diuji minggu ini."
-    },
-    {
-      hook: "Value proposition yang kuat terdengar seperti solusi untuk masalah nyata.",
-      angle: "Jika pelanggan tidak bisa menyebutkan masalahnya, copywriting terbaik pun sulit menjual.",
-      cta: "Tanya pelanggan: kapan terakhir kali masalah ini terjadi?"
-    },
-    {
-      hook: "BMC terbaik bukan dokumen final. Ia adalah peta eksperimen.",
-      angle: "Setiap blok perlu bukti: klik, signup, pre-order, repeat order, atau referral.",
-      cta: "Tentukan satu asumsi paling berisiko dan uji dalam 7 hari."
-    }
-  ];
+  const templates = state.language === "en"
+    ? [
+        {
+          hook: "Many businesses fail not because the idea is bad, but because the model is unclear.",
+          angle: "Use the BMC to see customers, value, channels, and revenue on one page.",
+          cta: "Write one idea today, then turn it into 9 blocks."
+        },
+        {
+          hook: "One question often saves founders money: who is the most specific first customer?",
+          angle: "BMC forces you to choose a segment instead of chasing everyone.",
+          cta: "Start with the narrowest segment, then validate it through interviews."
+        },
+        {
+          hook: "Revenue stream is not just price.",
+          angle: "You can test subscriptions, one-off outputs, commission, bundles, or premium consulting.",
+          cta: "Choose the easiest one to test this week."
+        },
+        {
+          hook: "A strong value proposition sounds like a solution to a real problem.",
+          angle: "If customers cannot describe the problem, even the best copywriting will struggle.",
+          cta: "Ask customers: when did this problem last happen?"
+        },
+        {
+          hook: "The best BMC is not a final document. It is an experiment map.",
+          angle: "Every block needs evidence: clicks, signups, pre-orders, repeat orders, or referrals.",
+          cta: "Pick one riskiest assumption and test it in 7 days."
+        }
+      ]
+    : [
+        {
+          hook: "Banyak bisnis gagal bukan karena idenya jelek, tapi karena modelnya belum jelas.",
+          angle: "Pakai BMC untuk melihat pelanggan, nilai, channel, dan revenue dalam satu halaman.",
+          cta: "Tulis satu ide Anda hari ini, lalu ubah menjadi 9 blok."
+        },
+        {
+          hook: "Satu pertanyaan yang sering menghemat biaya founder: siapa pelanggan pertama yang paling spesifik?",
+          angle: "BMC memaksa kita memilih segmen, bukan mengejar semua orang.",
+          cta: "Mulai dari segmen paling sempit, lalu validasi dengan wawancara."
+        },
+        {
+          hook: "Revenue stream bukan sekadar harga.",
+          angle: "Anda bisa menguji langganan, paket output, komisi, bundling, atau konsultasi premium.",
+          cta: "Pilih satu yang paling mudah diuji minggu ini."
+        },
+        {
+          hook: "Value proposition yang kuat terdengar seperti solusi untuk masalah nyata.",
+          angle: "Jika pelanggan tidak bisa menyebutkan masalahnya, copywriting terbaik pun sulit menjual.",
+          cta: "Tanya pelanggan: kapan terakhir kali masalah ini terjadi?"
+        },
+        {
+          hook: "BMC terbaik bukan dokumen final. Ia adalah peta eksperimen.",
+          angle: "Setiap blok perlu bukti: klik, signup, pre-order, repeat order, atau referral.",
+          cta: "Tentukan satu asumsi paling berisiko dan uji dalam 7 hari."
+        }
+      ];
 
   return templates.map((template, index) => {
     const platform = selected[index % selected.length] || "LinkedIn";
@@ -954,44 +1426,67 @@ function generatePosts() {
 
 function adaptCaption(platform, template, topic) {
   if (platform === "X") {
-    return `${template.hook}\n\nTopik: ${topic}.\n${template.cta}`;
+    const topicLabel = state.language === "en" ? "Topic" : "Topik";
+    return `${template.hook}\n\n${topicLabel}: ${topic}.\n${template.cta}`;
   }
   if (platform === "TikTok") {
+    if (state.language === "en") {
+      return `First 3 seconds: "${template.hook}"\nBody: ${template.angle}\nCTA: ${template.cta}`;
+    }
     return `Opening 3 detik: "${template.hook}"\nIsi: ${template.angle}\nCTA: ${template.cta}`;
   }
   if (platform === "LinkedIn") {
+    if (state.language === "en") {
+      return `${template.hook}\n\nToday topic: ${topic}.\n\n${template.angle}\n\n${template.cta} Share one business assumption you are testing.`;
+    }
     return `${template.hook}\n\nTopik hari ini: ${topic}.\n\n${template.angle}\n\n${template.cta} Bagikan satu asumsi bisnis yang sedang Anda uji.`;
   }
   return `${template.hook}\n\n${template.angle}\n\n${template.cta}`;
 }
 
 function hashtagsFor(platform) {
-  const base = ["#BusinessModelCanvas", "#BMC", "#Entrepreneurship", "#UMKM"];
-  if (platform === "LinkedIn") return [...base, "#StartupIndonesia"].join(" ");
-  if (platform === "TikTok") return [...base, "#BelajarBisnis", "#FounderTips"].join(" ");
-  if (platform === "X") return ["#BMC", "#Startup", "#Bisnis"].join(" ");
-  return [...base, "#IdeBisnis"].join(" ");
+  const base = state.language === "en"
+    ? ["#BusinessModelCanvas", "#BMC", "#Entrepreneurship", "#SmallBusiness"]
+    : ["#BusinessModelCanvas", "#BMC", "#Entrepreneurship", "#UMKM"];
+  if (platform === "LinkedIn") return [...base, state.language === "en" ? "#Startup" : "#StartupIndonesia"].join(" ");
+  if (platform === "TikTok") return [...base, state.language === "en" ? "#BusinessTips" : "#BelajarBisnis", "#FounderTips"].join(" ");
+  if (platform === "X") return ["#BMC", "#Startup", state.language === "en" ? "#Business" : "#Bisnis"].join(" ");
+  return [...base, state.language === "en" ? "#BusinessIdeas" : "#IdeBisnis"].join(" ");
 }
 
 function imageSuggestion(platform, topic) {
+  if (state.language === "en") {
+    if (platform === "TikTok") return `20-30 second video: founder placing sticky notes for the 9 BMC blocks with overlay text "${topic}".`;
+    if (platform === "Instagram") return "5-slide carousel: problem, 9 blocks, short example, risky assumption, CTA to create a BMC.";
+    if (platform === "LinkedIn") return "Clean one-page diagram comparing a raw idea with a test-ready BMC.";
+    return "Simple BMC grid visual with the discussed block highlighted.";
+  }
+
   if (platform === "TikTok") return `Video 20-30 detik: founder menempel sticky notes 9 blok BMC sambil teks overlay "${topic}".`;
-  if (platform === "Instagram") return `Carousel 5 slide: problem, 9 blok, contoh singkat, asumsi risiko, CTA buat BMC.`;
+  if (platform === "Instagram") return "Carousel 5 slide: problem, 9 blok, contoh singkat, asumsi risiko, CTA buat BMC.";
   if (platform === "LinkedIn") return "Diagram bersih satu halaman yang membandingkan ide mentah vs BMC siap diuji.";
   return "Visual ringkas BMC grid dengan highlight pada blok yang dibahas.";
 }
 
 function bestTime(platform, index) {
-  const times = {
-    Instagram: ["Selasa 19:30", "Kamis 12:15"],
-    LinkedIn: ["Rabu 08:30", "Selasa 10:00"],
-    X: ["Senin 12:00", "Jumat 17:30"],
-    TikTok: ["Kamis 20:00", "Minggu 18:30"],
-    Facebook: ["Sabtu 10:00", "Rabu 19:00"]
-  };
-  const list = times[platform] || ["Rabu 09:00"];
+  const times = state.language === "en"
+    ? {
+        Instagram: ["Tuesday 19:30", "Thursday 12:15"],
+        LinkedIn: ["Wednesday 08:30", "Tuesday 10:00"],
+        X: ["Monday 12:00", "Friday 17:30"],
+        TikTok: ["Thursday 20:00", "Sunday 18:30"],
+        Facebook: ["Saturday 10:00", "Wednesday 19:00"]
+      }
+    : {
+        Instagram: ["Selasa 19:30", "Kamis 12:15"],
+        LinkedIn: ["Rabu 08:30", "Selasa 10:00"],
+        X: ["Senin 12:00", "Jumat 17:30"],
+        TikTok: ["Kamis 20:00", "Minggu 18:30"],
+        Facebook: ["Sabtu 10:00", "Rabu 19:00"]
+      };
+  const list = times[platform] || [state.language === "en" ? "Wednesday 09:00" : "Rabu 09:00"];
   return list[index % list.length];
 }
-
 function renderPosts(posts) {
   els.postBoard.innerHTML = "";
   posts.forEach((post) => {
@@ -1004,9 +1499,9 @@ function renderPosts(posts) {
       </header>
       <p>${escapeHtml(post.caption).replace(/\n/g, "<br>")}</p>
       <div class="post-meta">
-        <span><strong>Hashtags:</strong> ${escapeHtml(post.hashtags)}</span>
-        <span><strong>Visual:</strong> ${escapeHtml(post.image)}</span>
-        <span><strong>Jadwal:</strong> ${escapeHtml(post.time)}</span>
+        <span><strong>${t("socialHashtags")}:</strong> ${escapeHtml(post.hashtags)}</span>
+        <span><strong>${t("socialVisual")}:</strong> ${escapeHtml(post.image)}</span>
+        <span><strong>${t("socialSchedule")}:</strong> ${escapeHtml(post.time)}</span>
       </div>
     `;
     els.postBoard.append(article);

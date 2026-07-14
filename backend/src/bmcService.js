@@ -3,15 +3,16 @@ const { buildBmcMessages, buildChatMessages } = require("./prompts");
 
 const requiredBmcKeys = blocks.map((block) => block.key);
 
-async function generateBmc(idea) {
-  const localDraft = generateLocalBmc(idea);
+async function generateBmc(idea, options = {}) {
+  const language = normalizeLanguage(options.language);
+  const localDraft = generateLocalBmc(idea, { language });
 
   if (!process.env.OPENAI_API_KEY) {
     return localDraft;
   }
 
   try {
-    const aiDraft = await callOpenAiJson(buildBmcMessages(idea, localDraft));
+    const aiDraft = await callOpenAiJson(buildBmcMessages(idea, localDraft, { language }));
     return normalizeBmcResponse(aiDraft, localDraft);
   } catch (error) {
     if (process.env.AI_FALLBACK_TO_LOCAL === "false") {
@@ -20,43 +21,46 @@ async function generateBmc(idea) {
 
     return {
       ...localDraft,
-      warning: "OpenAI tidak tersedia atau respons tidak valid, jadi backend memakai fallback lokal.",
+      warning: language === "en"
+        ? "OpenAI is unavailable or returned an invalid response, so the backend used the local fallback."
+        : "OpenAI tidak tersedia atau respons tidak valid, jadi backend memakai fallback lokal.",
       debug: process.env.NODE_ENV === "production" ? undefined : error.message
     };
   }
 }
 
-async function chatBmc({ idea, bmc, risks, question }) {
+async function chatBmc({ idea, bmc, risks, question, language: requestedLanguage }) {
+  const language = normalizeLanguage(requestedLanguage);
   const cleanQuestion = String(question || "").trim();
   if (!cleanQuestion) {
-    const error = new Error("Pertanyaan wajib diisi.");
+    const error = new Error(language === "en" ? "Question is required." : "Pertanyaan wajib diisi.");
     error.status = 400;
     throw error;
   }
 
-  const localAnswer = answerLocalChat({ idea, bmc, risks, question: cleanQuestion });
+  const localAnswer = answerLocalChat({ idea, bmc, risks, question: cleanQuestion, language });
 
   if (!process.env.OPENAI_API_KEY) {
     return {
       source: "local",
       answer: localAnswer,
       suggestions: [
-        "Apa langkah 30 hari pertama?",
-        "Asumsi mana yang paling berisiko?",
-        "Bagaimana cara menguji harga?"
+        ...(language === "en"
+          ? ["What are the first 30-day actions?", "Which assumption is riskiest?", "How should I test pricing?"]
+          : ["Apa langkah 30 hari pertama?", "Asumsi mana yang paling berisiko?", "Bagaimana cara menguji harga?"])
       ]
     };
   }
 
   try {
-    const aiAnswer = await callOpenAiJson(buildChatMessages({ idea, bmc, risks, question: cleanQuestion, localAnswer }));
+    const aiAnswer = await callOpenAiJson(buildChatMessages({ idea, bmc, risks, question: cleanQuestion, localAnswer, language }));
     return {
       source: "openai",
       answer: String(aiAnswer.answer || localAnswer).trim(),
       suggestions: normalizeStringArray(aiAnswer.suggestions, [
-        "Apa eksperimen validasi paling murah?",
-        "Channel mana yang harus diprioritaskan?",
-        "Bagaimana menghitung HPP dan margin?"
+        ...(language === "en"
+          ? ["What is the cheapest validation experiment?", "Which channel should be prioritized?", "How do I calculate cost and margin?"]
+          : ["Apa eksperimen validasi paling murah?", "Channel mana yang harus diprioritaskan?", "Bagaimana menghitung HPP dan margin?"])
       ], 3)
     };
   } catch (error) {
@@ -67,10 +71,16 @@ async function chatBmc({ idea, bmc, risks, question }) {
     return {
       source: "local",
       answer: localAnswer,
-      warning: "OpenAI tidak tersedia atau respons tidak valid, jadi backend memakai fallback lokal.",
+      warning: language === "en"
+        ? "OpenAI is unavailable or returned an invalid response, so the backend used the local fallback."
+        : "OpenAI tidak tersedia atau respons tidak valid, jadi backend memakai fallback lokal.",
       debug: process.env.NODE_ENV === "production" ? undefined : error.message
     };
   }
+}
+
+function normalizeLanguage(value) {
+  return String(value || "").toLowerCase() === "en" ? "en" : "id";
 }
 
 async function callOpenAiJson(messages) {

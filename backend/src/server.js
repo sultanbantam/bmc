@@ -26,7 +26,7 @@ app.get("/health", (req, res) => {
 app.post("/api/bmc/generate", requireAppKey, async (req, res, next) => {
   try {
     const idea = String(req.body?.idea || "").trim();
-    const result = await generateBmc(idea);
+    const result = await generateBmc(idea, { language: req.body?.language });
     res.json(result);
   } catch (error) {
     next(error);
@@ -39,7 +39,8 @@ app.post("/api/bmc/chat", requireAppKey, async (req, res, next) => {
       idea: req.body?.idea,
       bmc: req.body?.bmc,
       risks: req.body?.risks,
-      question: req.body?.question
+      question: req.body?.question,
+      language: req.body?.language
     });
     res.json(result);
   } catch (error) {
