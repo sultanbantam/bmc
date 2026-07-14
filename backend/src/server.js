@@ -5,7 +5,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { generateBmc, chatBmc } = require("./bmcService");
 const { listKnowledgeSources, uploadKnowledgeSource, searchKnowledge } = require("./knowledgeStore");
-const { saveDrafts, schedulePosts, publishDuePosts, listSocialPosts } = require("./socialStore");
+const { saveDrafts, schedulePosts, publishDuePosts, listSocialPosts, getSocialConfig, getPublishIntervalMs } = require("./socialStore");
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -21,6 +21,7 @@ app.get("/health", (req, res) => {
     ok: true,
     service: "bmc-ai-backend",
     openai: Boolean(process.env.OPENAI_API_KEY),
+    social: getSocialConfig(),
     time: new Date().toISOString()
   });
 });
@@ -111,6 +112,14 @@ app.post("/api/social/list", requireAppKey, async (req, res, next) => {
   }
 });
 
+app.post("/api/social/config", requireAppKey, async (req, res, next) => {
+  try {
+    res.json(getSocialConfig());
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint tidak ditemukan." });
 });
@@ -125,7 +134,28 @@ app.use((error, req, res, next) => {
 
 app.listen(port, () => {
   console.log(`BMC AI backend running on port ${port}`);
+  startSocialAutoPublisher();
 });
+
+function startSocialAutoPublisher() {
+  if (process.env.SOCIAL_AUTO_PUBLISH !== "true") return;
+
+  const intervalMs = getPublishIntervalMs();
+  const run = async () => {
+    try {
+      const result = await publishDuePosts();
+      if (result.processed > 0) {
+        console.log(`Social auto-publisher processed ${result.processed} due post(s).`);
+      }
+    } catch (error) {
+      console.error(`Social auto-publisher error: ${error.message}`);
+    }
+  };
+
+  setTimeout(run, 5000).unref();
+  setInterval(run, intervalMs).unref();
+  console.log(`Social auto-publisher enabled every ${intervalMs}ms.`);
+}
 
 function buildCorsOptions() {
   const allowed = String(process.env.CORS_ORIGIN || "")

@@ -4,6 +4,7 @@ const crypto = require("crypto");
 
 const dataDir = process.env.BMC_DATA_DIR || path.join(__dirname, "..", "data");
 const storePath = path.join(dataDir, "social-posts.json");
+const livePublishers = new Set(["X"]);
 
 function saveDrafts(payload = {}) {
   const posts = normalizePosts(payload.posts);
@@ -55,7 +56,7 @@ function schedulePosts(payload = {}) {
     image: post.image,
     scheduledAt: new Date(scheduledAt.getTime() + index * 30 * 60 * 1000).toISOString(),
     status: "scheduled",
-    publishMode: process.env.SOCIAL_PUBLISH_MODE === "live" ? "live" : "mock",
+    publishMode: resolvePublishMode(post.platform),
     externalId: "",
     error: "",
     createdAt: now,
@@ -63,7 +64,7 @@ function schedulePosts(payload = {}) {
   }));
   store.posts.push(...scheduled);
   writeStore(store);
-  return { scheduled, count: scheduled.length };
+  return { scheduled, count: scheduled.length, config: getSocialConfig() };
 }
 
 async function publishDuePosts() {
@@ -77,9 +78,15 @@ async function publishDuePosts() {
       const result = await publishPost(post);
       post.status = result.status;
       post.externalId = result.externalId || "";
-      post.error = "";
+      post.error = result.error || "";
       post.updatedAt = new Date().toISOString();
-      results.push({ id: post.id, platform: post.platform, status: post.status, externalId: post.externalId });
+      results.push({
+        id: post.id,
+        platform: post.platform,
+        status: post.status,
+        externalId: post.externalId,
+        error: post.error
+      });
     } catch (error) {
       post.status = "failed";
       post.error = error.message;
@@ -89,7 +96,7 @@ async function publishDuePosts() {
   }
 
   writeStore(store);
-  return { processed: results.length, results };
+  return { processed: results.length, results, config: getSocialConfig() };
 }
 
 function listSocialPosts(options = {}) {
@@ -101,33 +108,105 @@ function listSocialPosts(options = {}) {
     .slice(0, limit);
 }
 
+function getSocialConfig() {
+  const mode = getPublishMode();
+  const livePlatforms = getLivePlatforms();
+  return {
+    mode,
+    autoPublish: process.env.SOCIAL_AUTO_PUBLISH === "true",
+    intervalMs: getPublishIntervalMs(),
+    livePlatforms,
+    configuredPublishers: {
+      X: Boolean(process.env.X_USER_TOKEN)
+    }
+  };
+}
+
 async function publishPost(post) {
-  if (post.publishMode !== "live") {
+  if (post.publishMode === "mock") {
     return { status: "published", externalId: `mock_${post.id}` };
   }
 
-  if (post.platform === "X" && process.env.X_USER_TOKEN) {
-    const response = await fetch("https://api.x.com/2/tweets", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.X_USER_TOKEN}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ text: `${post.caption}\n\n${post.hashtags}`.trim().slice(0, 280) })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data?.detail || data?.title || `X publish failed ${response.status}`);
-    return { status: "published", externalId: data?.data?.id || "" };
+  if (post.publishMode === "manual") {
+    return {
+      status: "needs_credentials",
+      error: `Live publisher untuk ${post.platform} belum dikonfigurasi. Post tetap tersimpan untuk dipublish manual nanti.`
+    };
   }
 
-  throw new Error(`Live publisher untuk ${post.platform} belum dikonfigurasi.`);
+  if (post.platform === "X") {
+    return publishToX(post);
+  }
+
+  throw new Error(`Live publisher untuk ${post.platform} belum tersedia.`);
+}
+
+async function publishToX(post) {
+  const token = clean(process.env.X_USER_TOKEN);
+  if (!token) {
+    throw new Error("X_USER_TOKEN belum diisi. Buat OAuth 2.0 user token dengan izin tweet.write lalu simpan di .env.");
+  }
+
+  const text = formatXText(post);
+  const response = await fetch("https://api.x.com/2/tweets", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ text })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.detail || data?.title || data?.error || `X publish failed ${response.status}`);
+  }
+  return { status: "published", externalId: data?.data?.id || "" };
+}
+
+function formatXText(post) {
+  const maxLength = Math.max(40, Math.min(Number(process.env.X_TEXT_LIMIT || 280), 4000));
+  const hashtags = clean(post.hashtags).replace(/\s+/g, " ");
+  const caption = clean(post.caption).replace(/\n{3,}/g, "\n\n");
+  const fullText = [caption, hashtags].filter(Boolean).join("\n\n").trim();
+  if (fullText.length <= maxLength) return fullText;
+
+  if (hashtags && hashtags.length < maxLength - 24) {
+    const captionLimit = maxLength - hashtags.length - 3;
+    return `${caption.slice(0, captionLimit).trim()}...\n\n${hashtags}`.slice(0, maxLength);
+  }
+
+  return `${fullText.slice(0, maxLength - 3).trim()}...`;
+}
+
+function resolvePublishMode(platform) {
+  if (getPublishMode() !== "live") return "mock";
+  if (livePublishers.has(platform) && getLivePlatforms().includes(platform)) return "live";
+  return "manual";
+}
+
+function getPublishMode() {
+  return clean(process.env.SOCIAL_PUBLISH_MODE).toLowerCase() === "live" ? "live" : "mock";
+}
+
+function getLivePlatforms() {
+  const configured = String(process.env.SOCIAL_LIVE_PLATFORMS || "X")
+    .split(",")
+    .map((item) => normalizePlatform(item))
+    .filter(Boolean);
+  return configured.length ? [...new Set(configured)] : ["X"];
+}
+
+function getPublishIntervalMs() {
+  const raw = Number(process.env.SOCIAL_PUBLISH_INTERVAL_MS || 300000);
+  if (!Number.isFinite(raw)) return 300000;
+  return Math.max(60000, Math.min(raw, 3600000));
 }
 
 function normalizePosts(value) {
   const source = Array.isArray(value) ? value : [];
   return source
     .map((post) => ({
-      platform: clean(post.platform || "LinkedIn"),
+      platform: normalizePlatform(post.platform || "LinkedIn"),
       title: clean(post.title || post.platform || "Social post"),
       caption: clean(post.caption),
       hashtags: clean(post.hashtags),
@@ -135,6 +214,17 @@ function normalizePosts(value) {
     }))
     .filter((post) => post.caption)
     .slice(0, 20);
+}
+
+function normalizePlatform(value) {
+  const raw = clean(value);
+  const lower = raw.toLowerCase();
+  if (lower === "twitter" || lower === "x") return "X";
+  if (lower === "linkedin" || lower === "linked in") return "LinkedIn";
+  if (lower === "instagram" || lower === "ig") return "Instagram";
+  if (lower === "tiktok" || lower === "tik tok") return "TikTok";
+  if (lower === "facebook" || lower === "fb") return "Facebook";
+  return raw || "LinkedIn";
 }
 
 function parseSchedule(value) {
@@ -179,5 +269,7 @@ module.exports = {
   saveDrafts,
   schedulePosts,
   publishDuePosts,
-  listSocialPosts
+  listSocialPosts,
+  getSocialConfig,
+  getPublishIntervalMs
 };

@@ -19,7 +19,27 @@ Jika `OPENAI_API_KEY` kosong, backend tetap berjalan memakai generator lokal. Ji
 
 Knowledge base MVP menyimpan sumber dan chunk di file JSON pada `backend/data` atau folder yang ditentukan `BMC_DATA_DIR`. Untuk tahap ini upload terbaik adalah `.txt`, `.md`, atau teks kurasi yang sudah dipaste dari buku/paper. PDF/DOCX/OCR bisa ditambahkan pada fase database/parser.
 
-Social publishing MVP menyimpan draft dan jadwal di `backend/data/social-posts.json`. Default `SOCIAL_PUBLISH_MODE=mock`, artinya tombol publish due menandai post sebagai published tanpa mengirim ke platform. Untuk mode live, tiap platform tetap perlu OAuth/token resmi; adapter X disiapkan lewat `X_USER_TOKEN`.
+Social publishing MVP menyimpan draft dan jadwal di `backend/data/social-posts.json`. Default `SOCIAL_PUBLISH_MODE=mock`, artinya tombol publish due menandai post sebagai published tanpa mengirim ke platform. Untuk mode live, tiap platform tetap perlu OAuth/token resmi. Tahap pertama yang sudah disiapkan adalah X lewat `X_USER_TOKEN`.
+
+## X Auto Publishing
+
+Backend sudah bisa memproses post terjadwal untuk X jika token OAuth resmi tersedia. Isi `.env`:
+
+```bash
+SOCIAL_PUBLISH_MODE=live
+SOCIAL_AUTO_PUBLISH=true
+SOCIAL_PUBLISH_INTERVAL_MS=300000
+SOCIAL_LIVE_PLATFORMS=X
+X_USER_TOKEN=isi_oauth2_user_token_x
+X_TEXT_LIMIT=280
+```
+
+Catatan:
+
+- `X_USER_TOKEN` harus berupa OAuth 2.0 user token yang punya izin menulis post/tweet.
+- Post selain X akan disimpan tetapi diberi status `needs_credentials` saat live publisher belum dikonfigurasi.
+- Jika `SOCIAL_AUTO_PUBLISH=false`, jadwal hanya diproses saat endpoint `/api/social/publish-due` dipanggil.
+- Endpoint `/health` dan `/api/social/config` menampilkan status publisher tanpa membocorkan token.
 
 ## Jalankan Lokal
 
