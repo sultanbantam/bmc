@@ -15,7 +15,7 @@ function hasBackendConfig() {
 
 async function requestBackend(path, payload) {
   const { baseUrl, apiKey } = getBackendConfig();
-  if (!baseUrl) throw new Error("BMC_API_URL belum diatur.");
+  if (!baseUrl) throw new Error(t("apiUrlMissing"));
 
   const headers = { "Content-Type": "application/json" };
   if (apiKey) headers["x-app-key"] = apiKey;
@@ -422,7 +422,51 @@ const translations = {
     socialScheduleLabel: "Jadwal mulai",
     socialSaveDrafts: "Simpan Draft",
     socialSchedulePosts: "Jadwalkan",
-    socialPublishDue: "Publish Due"
+    socialPublishDue: "Publish Due",
+    apiUrlMissing: "BMC_API_URL belum diatur.",
+    exportTitle: "Export",
+    exportMarkdown: "Markdown",
+    exportHtml: "HTML",
+    exportPdf: "Print PDF",
+    price1Title: "Rp50.000/bulan",
+    price2Title: "Rp30.000",
+    price3Title: "Rp500k-1jt/jam",
+    sampleMenuHealth: "Menu sehat",
+    sampleAiCourse: "Kursus AI UMKM",
+    sampleAgriLocal: "Agritech lokal",
+    sampleMenuHealthIdea: "Aplikasi langganan menu sehat rumahan untuk pekerja kantor di Jakarta yang ingin makan teratur tanpa memasak.",
+    sampleAiCourseIdea: "Platform kursus singkat AI untuk pemilik UMKM Indonesia yang ingin membuat konten dan laporan bisnis lebih cepat.",
+    sampleAgriLocalIdea: "Marketplace produk pertanian lokal yang menghubungkan petani kecil dengan restoran dan katering di kota besar.",
+    knowledgeAuthorLabel: "Penulis",
+    knowledgeYearLabel: "Tahun",
+    knowledgeTagsLabel: "Tag",
+    knowledgeFileLabel: "File teks",
+    knowledgeContentLabel: "Isi kurasi",
+    knowledgeStatusReady: "Knowledge siap menerima sumber kurasi.",
+    knowledgeUnsupportedFile: "MVP ini menerima .txt/.md. Untuk PDF/DOCX, paste teks kurasi dulu.",
+    knowledgeFileReady: "File {file} siap di-upload.",
+    backendConfigMissing: "Backend API belum aktif di config.js.",
+    knowledgeSaved: "Knowledge tersimpan: {title} ({chunks} chunk).",
+    knowledgeUploadFailed: "Upload gagal: {message}",
+    knowledgeBackendInactiveTitle: "Backend belum aktif",
+    knowledgeBackendInactiveBody: "Isi BMC_API_URL agar knowledge base bisa dipakai.",
+    knowledgeUnavailableTitle: "Knowledge belum tersedia",
+    knowledgeNoSourcesTitle: "Belum ada sumber",
+    knowledgeNoSourcesBody: "Upload teks kurasi buku/paper untuk mulai memberi pengetahuan ke agent.",
+    curatedSourceFallback: "Sumber kurasi",
+    socialStatusReady: "Draft sosial siap dibuat.",
+    socialDraftsSaved: "{count} draft tersimpan.",
+    socialDraftSaveFailed: "Simpan draft gagal: {message}",
+    socialScheduled: "{count} post dijadwalkan.",
+    socialScheduleFailed: "Jadwal gagal: {message}",
+    socialPublishProcessed: "{count} post due diproses.",
+    socialPublishFailed: "Publish due gagal: {message}",
+    socialQueueInactiveTitle: "Queue belum aktif",
+    socialQueueInactiveBody: "Backend diperlukan untuk menyimpan draft dan jadwal.",
+    socialQueueUnavailableTitle: "Queue belum tersedia",
+    socialNoScheduleTitle: "Belum ada jadwal",
+    socialNoScheduleBody: "Simpan draft atau jadwalkan post dari hasil Social Agent.",
+    socialDraftLabel: "Draft"
   },
   en: {
     navKnowledge: "Knowledge",
@@ -542,7 +586,51 @@ const translations = {
     socialScheduleLabel: "Start schedule",
     socialSaveDrafts: "Save Drafts",
     socialSchedulePosts: "Schedule",
-    socialPublishDue: "Publish Due"
+    socialPublishDue: "Publish Due",
+    apiUrlMissing: "BMC_API_URL is not configured.",
+    exportTitle: "Export",
+    exportMarkdown: "Markdown",
+    exportHtml: "HTML",
+    exportPdf: "Print PDF",
+    price1Title: "Rp50,000/month",
+    price2Title: "Rp30,000",
+    price3Title: "Rp500k-1m/hour",
+    sampleMenuHealth: "Healthy meals",
+    sampleAiCourse: "AI course for SMEs",
+    sampleAgriLocal: "Local agritech",
+    sampleMenuHealthIdea: "Home-style healthy meal subscription for office workers in Jakarta who want regular meals without cooking.",
+    sampleAiCourseIdea: "Short AI course platform for Indonesian SME owners who want to create content and business reports faster.",
+    sampleAgriLocalIdea: "Local agriculture marketplace connecting small farmers with restaurants and caterers in large cities.",
+    knowledgeAuthorLabel: "Author",
+    knowledgeYearLabel: "Year",
+    knowledgeTagsLabel: "Tags",
+    knowledgeFileLabel: "Text file",
+    knowledgeContentLabel: "Curated content",
+    knowledgeStatusReady: "Knowledge is ready to receive curated sources.",
+    knowledgeUnsupportedFile: "This MVP accepts .txt/.md files. For PDF/DOCX, paste the curated text first.",
+    knowledgeFileReady: "File {file} is ready to upload.",
+    backendConfigMissing: "Backend API is not active in config.js.",
+    knowledgeSaved: "Knowledge saved: {title} ({chunks} chunks).",
+    knowledgeUploadFailed: "Upload failed: {message}",
+    knowledgeBackendInactiveTitle: "Backend inactive",
+    knowledgeBackendInactiveBody: "Set BMC_API_URL so the knowledge base can be used.",
+    knowledgeUnavailableTitle: "Knowledge unavailable",
+    knowledgeNoSourcesTitle: "No sources yet",
+    knowledgeNoSourcesBody: "Upload curated book/paper text to start giving the agent approved knowledge.",
+    curatedSourceFallback: "Curated source",
+    socialStatusReady: "Social drafts are ready to create.",
+    socialDraftsSaved: "{count} drafts saved.",
+    socialDraftSaveFailed: "Save draft failed: {message}",
+    socialScheduled: "{count} posts scheduled.",
+    socialScheduleFailed: "Schedule failed: {message}",
+    socialPublishProcessed: "{count} due posts processed.",
+    socialPublishFailed: "Publish due failed: {message}",
+    socialQueueInactiveTitle: "Queue inactive",
+    socialQueueInactiveBody: "The backend is required to save drafts and schedules.",
+    socialQueueUnavailableTitle: "Queue unavailable",
+    socialNoScheduleTitle: "No schedule yet",
+    socialNoScheduleBody: "Save drafts or schedule posts from the Social Agent output.",
+    socialDraftLabel: "Draft"
   }
 };
 
@@ -729,8 +817,14 @@ function setLanguage(language) {
   renderChatIntro();
   renderSocialControls();
   renderPosts(generatePosts());
+  loadKnowledgeSources();
+  loadSocialQueue();
   persistState();
-  setStatus(t("statusReady"));
+  if (state.idea && els.ideaInput.value.trim()) {
+    void generateBmcFromInput();
+  } else {
+    setStatus(t("statusReady"));
+  }
 }
 
 function applyLanguage() {
@@ -788,6 +882,15 @@ function applyLanguage() {
     ["#save-social-drafts span:last-child", "socialSaveDrafts"],
     ["#schedule-social-posts span:last-child", "socialSchedulePosts"],
     ["#publish-due-posts span:last-child", "socialPublishDue"],
+    [".export-box h4", "exportTitle"],
+    ["#export-md", "exportMarkdown"],
+    ["#export-html", "exportHtml"],
+    ["#print-pdf", "exportPdf"],
+    ['label[for="knowledge-author"]', "knowledgeAuthorLabel"],
+    ['label[for="knowledge-year"]', "knowledgeYearLabel"],
+    ['label[for="knowledge-tags"]', "knowledgeTagsLabel"],
+    ['label[for="knowledge-file"]', "knowledgeFileLabel"],
+    ['label[for="knowledge-content"]', "knowledgeContentLabel"],
     ["#features .section-heading .eyebrow", "featureEyebrow"],
     ["#features .section-heading h2", "featureTitle"],
     [".feature-grid article:nth-child(1) h3", "feature1Title"],
@@ -800,9 +903,12 @@ function applyLanguage() {
     [".feature-grid article:nth-child(4) p", "feature4Copy"],
     ["#pricing .section-heading .eyebrow", "pricingEyebrow"],
     ["#pricing .section-heading h2", "pricingTitle"],
+    [".pricing-grid article:nth-child(1) h3", "price1Title"],
     [".pricing-grid article:nth-child(1) p", "price1Copy"],
     [".pricing-grid article:nth-child(1) a", "price1Cta"],
+    [".pricing-grid article:nth-child(2) h3", "price2Title"],
     [".pricing-grid article:nth-child(2) p", "price2Copy"],
+    [".pricing-grid article:nth-child(3) h3", "price3Title"],
     [".pricing-grid article:nth-child(3) p", "price3Copy"],
     ["#testimonials .section-heading .eyebrow", "testimonialEyebrow"],
     ["#testimonials .section-heading h2", "testimonialTitle"],
@@ -844,6 +950,21 @@ function applyLanguage() {
   placeholderTargets.forEach(([element, key]) => {
     if (element) element.setAttribute("placeholder", t(key));
   });
+
+  const sampleTargets = [
+    [".prompt-chip:nth-child(1)", "sampleMenuHealth", "sampleMenuHealthIdea"],
+    [".prompt-chip:nth-child(2)", "sampleAiCourse", "sampleAiCourseIdea"],
+    [".prompt-chip:nth-child(3)", "sampleAgriLocal", "sampleAgriLocalIdea"]
+  ];
+  sampleTargets.forEach(([selector, labelKey, ideaKey]) => {
+    const element = document.querySelector(selector);
+    if (!element) return;
+    element.textContent = t(labelKey);
+    element.dataset.idea = t(ideaKey);
+  });
+
+  if (els.knowledgeStatus && !els.knowledgeStatus.dataset.custom) setKnowledgeStatus(t("knowledgeStatusReady"));
+  if (els.socialStatus && !els.socialStatus.dataset.custom) setSocialStatus(t("socialStatusReady"));
 
   if (!state.idea) els.canvasTitle.textContent = t("canvasTitle");
   setStatus(t("statusReady"));
@@ -903,8 +1024,13 @@ async function generateBmcFromInput() {
 function useLocalBmc(idea) {
   const sector = detectSector(idea);
   const businessName = summarizeIdea(idea);
-  state.bmc = buildBmc(idea, sector);
-  state.risks = buildRisks(idea, sector);
+  if (state.language === "en") {
+    state.bmc = buildEnglishBmc(idea, sector);
+    state.risks = buildEnglishRisks(idea, sector);
+  } else {
+    state.bmc = buildBmc(idea, sector);
+    state.risks = buildRisks(idea, sector);
+  }
   els.canvasTitle.textContent = `BMC - ${businessName}`;
 }
 
@@ -1105,6 +1231,197 @@ function buildRisks(idea, sector) {
     }
   ];
 }
+function buildEnglishBmc(idea, sector) {
+  const context = extractEnglishContext(idea, sector);
+  if (sector.name === "tourism") {
+    return {
+      customerSegments: [
+        `Visitors from ${context.primaryMarkets} who want an authentic ${context.product} experience in ${context.location} without building the itinerary themselves.`,
+        "families, schools, campuses, and travel communities seeking a 1-2 day nature-and-culture trip",
+        "companies and institutions looking for village-based outing, CSR, or team-building programs",
+        "niche travelers interested in local culture, farming, sustainability, and community-based tourism"
+      ],
+      valuePropositions: [
+        `A ${context.product} package in ${context.location} combining nature, local culture, food, community stories, and educational activities.`,
+        "clear itinerary, local guide, visitor rules, safety checklist, and transparent cost estimate before booking",
+        "direct local economic impact through guides, homestays, meals, crafts, documentation, and conservation work",
+        "ethical visitor briefing that helps guests respect community rules and environmental limits"
+      ],
+      channels: [
+        "WhatsApp Business for booking, package catalog, access FAQ, deposit confirmation, and follow-up messages.",
+        "Instagram Reels and TikTok clips showing routes, activities, package prices, safety notes, and visitor reviews.",
+        "Google Business Profile with location photos, opening hours, reviews, and clear directions.",
+        "Direct outreach to hiking communities, campuses, schools, travel organizers, and offices in nearby cities."
+      ],
+      customerRelationships: [
+        "Before the trip: WhatsApp consultation about group size, age, transport, interests, and physical limits.",
+        "During the trip: local guide acts as host, storyteller, visitor-ethics guardian, and safety coordinator.",
+        "After the trip: send documentation, request Google/Instagram reviews, and offer referral or next package.",
+        "For schools/offices: provide proposal, invoice, itinerary, permit notes if needed, and a simple impact report."
+      ],
+      revenueStreams: [
+        "One-day trip package per person including guide, local meal, and main activity; starting price is an initial assumption.",
+        "Overnight package with homestay, meals, guide, and culture/nature activities; validate with deposit first.",
+        "School/campus and corporate group package with group pricing, custom itinerary, and simple impact report.",
+        "Add-on revenue from local products, meals, photo/video documentation, and additional transport."
+      ],
+      keyActivities: [
+        "Map tourism assets, safe routes, community rules, visitor capacity, and prohibited activities in week 1.",
+        "Train local guides for storytelling, hospitality, basic first aid, and group coordination before pilot trips.",
+        "Create itinerary, price list, package catalog, WhatsApp booking flow, and 10 authentic photos/videos.",
+        "Run a 10-15 person pilot trip within 30 days to test price, SOP, cost, and satisfaction."
+      ],
+      keyResources: [
+        "Local guides, community leaders, safe routes, cultural stories, homestays, food providers, and activity locations.",
+        "Visitor SOP, community rules, safety checklist, price list, itinerary templates, and booking scripts.",
+        "Content assets, WhatsApp Business, Google Maps listing, landing page, and list of 30 potential buyers.",
+        "Cost data per participant, margin per package, minimum group size, and working capital for pilot operations."
+      ],
+      keyPartnerships: [
+        "Village leaders, customary leaders, tourism awareness group, youth group, homestay owners, and local SMEs.",
+        "Travel communities, schools, campuses, offices, travel organizers, and local creators who can bring groups.",
+        "Transport providers, outdoor/safety equipment providers, food SMEs, craft makers, and local media.",
+        "Tourism office, conservation NGOs, SME incubators, and community organizations for legitimacy and training."
+      ],
+      costStructure: [
+        "Variable cost per participant: guide fee, meals, homestay, local transport, cleaning, and community contribution.",
+        "Fixed costs: guide training, signage, safety tools, SOP documentation, website, and content production.",
+        "Marketing costs: small ads, creator collaboration, photo/video editing, WhatsApp admin, and Google listing upkeep.",
+        "Risk buffer for weather, refunds, route maintenance, facility repairs, and guest safety incidents."
+      ]
+    };
+  }
+
+  return {
+    customerSegments: [
+      `Most testable first segment: ${context.target}.`,
+      "buyers who already use a manual workaround and can explain the problem without education",
+      "small teams or business owners who can approve a pilot within 7-14 days",
+      "communities or niches where the founder can reach at least 30 prospects directly"
+    ],
+    valuePropositions: [
+      `Core promise: help customers solve "${context.problem}" in a faster, clearer, or lower-risk way.`,
+      "a simple first offer with visible output, clear delivery time, and measurable before/after result",
+      "lower switching friction than manual work or existing alternatives through templates, onboarding, or concierge help",
+      "evidence-based guidance that turns user input into next actions, pricing, channels, and validation metrics"
+    ],
+    channels: [
+      "SEO landing page targeting one pain keyword and one clear CTA for a pilot or waitlist.",
+      "Direct outreach to 30 named prospects from communities, LinkedIn, WhatsApp groups, or existing relationships.",
+      "Short demo content on LinkedIn/X/TikTok showing the before-after result and one concrete use case.",
+      "Partnership with one trusted community, consultant, campus, incubator, or operator serving the same segment."
+    ],
+    customerRelationships: [
+      "Onboarding asks the user's goal, budget, urgency, current workaround, and success metric before giving output.",
+      "Follow-up within 24-48 hours after first use to collect objections, missing features, and willingness to pay.",
+      "Weekly education email or WhatsApp update with examples, templates, and one action users can complete.",
+      "Premium help path for users who want review, implementation support, or go-to-market decisions."
+    ],
+    revenueStreams: [
+      "Entry plan for first validation, pro plan for recurring use, and premium help for high-touch support.",
+      "One-time paid output or paid pilot to test willingness to pay before building full automation.",
+      "Monthly subscription after activation is proven, with usage limit or feature tier based on real demand.",
+      "Add-on revenue from templates, implementation review, done-with-you sessions, or partner referrals."
+    ],
+    keyActivities: [
+      "Interview 15 prospects in week 1 and capture exact phrases, current alternatives, budget, and buying trigger.",
+      "Launch one landing page and one offer in week 2, then track CTA clicks, signups, and booked calls.",
+      "Run a small paid pilot or concierge MVP in week 3 before automating the full workflow.",
+      "Review conversion, margin, retention intent, and objections in week 4 before scaling channels."
+    ],
+    keyResources: [
+      "Founder expertise, customer interview notes, lead list, offer copy, landing page, and conversion tracking.",
+      "Templates, SOPs, product workflow, pricing sheet, support scripts, and examples from early users.",
+      "Technical stack, AI/API access, hosting, analytics, and data privacy checklist for user inputs.",
+      "Community access, partner relationships, early testimonials, case studies, and proof of willingness to pay."
+    ],
+    keyPartnerships: [
+      "Communities where the target segment already asks for help and trusts moderators or mentors.",
+      "Payment, hosting, AI/API, analytics, and email/WhatsApp tools that support the first workflow.",
+      "Consultants, incubators, campuses, or operators who can refer users and validate the offer.",
+      "One anchor customer or pilot partner willing to give feedback, testimonial, and usage data."
+    ],
+    costStructure: [
+      "Fixed costs: hosting, domain, AI/API, analytics, design, documentation, and basic operations.",
+      "Variable costs: support time, manual fulfillment, API usage per output, payment fees, and content production.",
+      "Acquisition costs: outreach tools, small ads, community sponsorship, demo production, and partner incentives.",
+      "Validation budget for landing page tests, paid pilots, sample outputs, interviews, and customer support."
+    ]
+  };
+}
+
+function buildEnglishRisks(idea, sector) {
+  const context = extractEnglishContext(idea, sector);
+  if (sector.name === "tourism") {
+    return [
+      {
+        title: "Local permission, visitor rules, and site capacity are not clear yet",
+        why: `Tourism in ${context.location} is only healthy if local leaders, residents, guides, and operators feel involved and fairly benefit.`,
+        test: "Run a small discussion with local/customary leaders, guide candidates, homestay owners, and affected residents. Agree on rules, capacity, benefit sharing, and prohibited activities."
+      },
+      {
+        title: "Visitors may not pay for a package instead of coming independently",
+        why: "Eco-tourism must prove that itinerary, guide, safety, cultural stories, and easy booking are valuable enough to pay for.",
+        test: "Create two packages and offer pre-booking to 30 potential participants or communities. Initial target: at least 10 people pay a deposit for the pilot trip."
+      },
+      {
+        title: "Experience quality may not be consistent from trip to trip",
+        why: "Bad reviews can come from difficult access, weather, unprepared guides, homestay quality, or mismatched expectations.",
+        test: "Run a 10-15 person pilot trip with SOP checklist, feedback form, actual cost data, and public reviews. Improve before scaling promotion."
+      }
+    ];
+  }
+
+  return [
+    {
+      title: "The first segment may not feel the problem strongly enough",
+      why: `The BMC only becomes useful if ${context.target} has a frequent, expensive, or urgent pain.`,
+      test: "Interview 15 potential customers and ask them to describe current alternatives, not just opinions."
+    },
+    {
+      title: "The value proposition may not be different enough from alternatives",
+      why: "Customers often have free, manual, or familiar competitor options, so the first offer must prove a clearer outcome.",
+      test: "Create a landing page with three value-message variants, then measure CTA clicks and signups per message."
+    },
+    {
+      title: "Unit economics may not work from early transactions",
+      why: "Revenue must cover acquisition, production, support, and growth experiments.",
+      test: "Calculate margin per package and run a small pre-order before building full features or operations."
+    }
+  ];
+}
+
+function extractEnglishContext(idea, sector) {
+  const lower = idea.toLowerCase();
+  const location = detectLocation(idea);
+  const isTourism = sector?.name === "tourism";
+  const product = lower.includes("eco") || lower.includes("eko") || lower.includes("ekowisata")
+    ? "eco-tourism"
+    : lower.includes("wisata") || lower.includes("tour")
+      ? "tourism"
+      : "business";
+  const primaryMarkets = isTourism && /cibarani|lebak|banten|kasepuhan/i.test(idea)
+    ? "Jakarta, Tangerang, Serang, Bogor, Bandung, and Banten travel communities"
+    : "nearby cities and relevant niche communities";
+  const target = isTourism
+    ? `potential visitors seeking an authentic ${product} experience in ${location}`
+    : lower.includes("umkm") || lower.includes("sme")
+      ? "SME owners who need practical business outcomes"
+      : lower.includes("jakarta")
+        ? "urban customers in Jakarta"
+        : lower.includes("petani") || lower.includes("farmer")
+          ? "farmers and harvest buyers"
+          : "the customer group that feels this problem most often";
+  const problem = isTourism
+    ? "finding a clear, safe, authentic, locally respectful, and easy-to-book tourism package"
+    : lower.includes("tanpa")
+      ? idea.split(/tanpa/i)[1]?.slice(0, 80).trim() || "removing the main friction"
+      : lower.includes("without")
+        ? idea.split(/without/i)[1]?.slice(0, 80).trim() || "removing the main friction"
+        : "starting with lower risk and lower cost";
+  return { location, product, primaryMarkets, target, problem };
+}
+
 function renderCanvas() {
   els.grid.innerHTML = "";
   blocks.forEach((block, index) => {
@@ -1205,8 +1522,8 @@ function answerQuestion(question) {
 function answerQuestionEnglish(question) {
   const lower = question.toLowerCase();
   const sector = detectSector(state.idea || "");
-  const context = extractContext(state.idea || "", sector);
-  const riskList = state.risks.length ? state.risks : buildRisks(state.idea || "", sector);
+  const context = extractEnglishContext(state.idea || "", sector);
+  const riskList = state.risks.length ? state.risks : buildEnglishRisks(state.idea || "", sector);
 
   if (lower.includes("step") || lower.includes("action") || lower.includes("30 day") || lower.includes("start") || lower.includes("execute")) {
     return buildActionPlanResponseEnglish(sector, context);
@@ -1573,19 +1890,19 @@ async function loadKnowledgeFile() {
   if (!file) return;
   const ext = file.name.split(".").pop().toLowerCase();
   if (!["txt", "md"].includes(ext)) {
-    setKnowledgeStatus("MVP ini menerima .txt/.md. Untuk PDF/DOCX, paste teks kurasi dulu.");
+    setKnowledgeStatus(t("knowledgeUnsupportedFile"));
     return;
   }
   const content = await file.text();
   els.knowledgeContent.value = content;
   if (!els.knowledgeTitle.value.trim()) els.knowledgeTitle.value = file.name.replace(/\.[^.]+$/, "");
-  setKnowledgeStatus(`File ${file.name} siap di-upload.`);
+  setKnowledgeStatus(interpolate(t("knowledgeFileReady"), { file: file.name }));
 }
 
 async function uploadKnowledge(event) {
   event.preventDefault();
   if (!hasBackendConfig()) {
-    setKnowledgeStatus("Backend API belum aktif di config.js.");
+    setKnowledgeStatus(t("backendConfigMissing"));
     return;
   }
 
@@ -1601,18 +1918,18 @@ async function uploadKnowledge(event) {
       content: els.knowledgeContent.value
     };
     const result = await requestBackend("/api/knowledge/upload", payload);
-    setKnowledgeStatus(`Knowledge tersimpan: ${result.source.title} (${result.chunks} chunk).`);
+    setKnowledgeStatus(interpolate(t("knowledgeSaved"), { title: result.source.title, chunks: result.chunks }));
     els.knowledgeForm.reset();
     await loadKnowledgeSources();
   } catch (error) {
-    setKnowledgeStatus(`Upload gagal: ${error.message}`);
+    setKnowledgeStatus(interpolate(t("knowledgeUploadFailed"), { message: error.message }));
   }
 }
 
 async function loadKnowledgeSources() {
   if (!els.knowledgeList) return;
   if (!hasBackendConfig()) {
-    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>Backend belum aktif</h3><p>Isi BMC_API_URL agar knowledge base bisa dipakai.</p></article>`;
+    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>${t("knowledgeBackendInactiveTitle")}</h3><p>${t("knowledgeBackendInactiveBody")}</p></article>`;
     return;
   }
 
@@ -1620,27 +1937,29 @@ async function loadKnowledgeSources() {
     const data = await requestBackend("/api/knowledge/sources", {});
     renderKnowledgeSources(data.sources || []);
   } catch (error) {
-    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>Knowledge belum tersedia</h3><p>${escapeHtml(error.message)}</p></article>`;
+    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>${t("knowledgeUnavailableTitle")}</h3><p>${escapeHtml(error.message)}</p></article>`;
   }
 }
 
 function renderKnowledgeSources(sources) {
   if (!sources.length) {
-    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>Belum ada sumber</h3><p>Upload teks kurasi buku/paper untuk mulai memberi pengetahuan ke agent.</p></article>`;
+    els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>${t("knowledgeNoSourcesTitle")}</h3><p>${t("knowledgeNoSourcesBody")}</p></article>`;
     return;
   }
 
   els.knowledgeList.innerHTML = sources.map((source) => `
     <article class="knowledge-item">
       <h3>${escapeHtml(source.title)}</h3>
-      <p>${escapeHtml([source.author, source.year].filter(Boolean).join(" - ") || "Sumber kurasi")} · ${source.chunks} chunk · ${escapeHtml(source.language || "id")}</p>
+      <p>${escapeHtml([source.author, source.year].filter(Boolean).join(" - ") || t("curatedSourceFallback"))} ï¿½ ${source.chunks} chunk ï¿½ ${escapeHtml(source.language || "id")}</p>
       <p>${escapeHtml((source.tags || []).join(", "))}</p>
     </article>
   `).join("");
 }
 
 function setKnowledgeStatus(message) {
-  if (els.knowledgeStatus) els.knowledgeStatus.textContent = message;
+  if (!els.knowledgeStatus) return;
+  els.knowledgeStatus.dataset.custom = message === t("knowledgeStatusReady") ? "" : "true";
+  els.knowledgeStatus.textContent = message;
 }
 
 function setDefaultSchedule() {
@@ -1652,21 +1971,21 @@ function setDefaultSchedule() {
 
 async function saveSocialDrafts() {
   if (!hasBackendConfig()) {
-    setSocialStatus("Backend API belum aktif di config.js.");
+    setSocialStatus(t("backendConfigMissing"));
     return;
   }
   try {
     const data = await requestBackend("/api/social/save", { posts: state.socialPosts });
-    setSocialStatus(`${data.count} draft tersimpan.`);
+    setSocialStatus(interpolate(t("socialDraftsSaved"), { count: data.count }));
     await loadSocialQueue();
   } catch (error) {
-    setSocialStatus(`Simpan draft gagal: ${error.message}`);
+    setSocialStatus(interpolate(t("socialDraftSaveFailed"), { message: error.message }));
   }
 }
 
 async function scheduleSocialPosts() {
   if (!hasBackendConfig()) {
-    setSocialStatus("Backend API belum aktif di config.js.");
+    setSocialStatus(t("backendConfigMissing"));
     return;
   }
   try {
@@ -1674,58 +1993,60 @@ async function scheduleSocialPosts() {
       posts: state.socialPosts,
       scheduledAt: els.scheduleAt.value ? new Date(els.scheduleAt.value).toISOString() : undefined
     });
-    setSocialStatus(`${data.count} post dijadwalkan.`);
+    setSocialStatus(interpolate(t("socialScheduled"), { count: data.count }));
     await loadSocialQueue();
   } catch (error) {
-    setSocialStatus(`Jadwal gagal: ${error.message}`);
+    setSocialStatus(interpolate(t("socialScheduleFailed"), { message: error.message }));
   }
 }
 
 async function publishDuePosts() {
   if (!hasBackendConfig()) {
-    setSocialStatus("Backend API belum aktif di config.js.");
+    setSocialStatus(t("backendConfigMissing"));
     return;
   }
   try {
     const data = await requestBackend("/api/social/publish-due", {});
-    setSocialStatus(`${data.processed} post due diproses.`);
+    setSocialStatus(interpolate(t("socialPublishProcessed"), { count: data.processed }));
     await loadSocialQueue();
   } catch (error) {
-    setSocialStatus(`Publish due gagal: ${error.message}`);
+    setSocialStatus(interpolate(t("socialPublishFailed"), { message: error.message }));
   }
 }
 
 async function loadSocialQueue() {
   if (!els.socialQueue) return;
   if (!hasBackendConfig()) {
-    els.socialQueue.innerHTML = `<article class="queue-item"><h3>Queue belum aktif</h3><p>Backend diperlukan untuk menyimpan draft dan jadwal.</p></article>`;
+    els.socialQueue.innerHTML = `<article class="queue-item"><h3>${t("socialQueueInactiveTitle")}</h3><p>${t("socialQueueInactiveBody")}</p></article>`;
     return;
   }
   try {
     const data = await requestBackend("/api/social/list", { limit: 8 });
     renderSocialQueue(data.posts || []);
   } catch (error) {
-    els.socialQueue.innerHTML = `<article class="queue-item"><h3>Queue belum tersedia</h3><p>${escapeHtml(error.message)}</p></article>`;
+    els.socialQueue.innerHTML = `<article class="queue-item"><h3>${t("socialQueueUnavailableTitle")}</h3><p>${escapeHtml(error.message)}</p></article>`;
   }
 }
 
 function renderSocialQueue(posts) {
   if (!posts.length) {
-    els.socialQueue.innerHTML = `<article class="queue-item"><h3>Belum ada jadwal</h3><p>Simpan draft atau jadwalkan post dari hasil Social Agent.</p></article>`;
+    els.socialQueue.innerHTML = `<article class="queue-item"><h3>${t("socialNoScheduleTitle")}</h3><p>${t("socialNoScheduleBody")}</p></article>`;
     return;
   }
 
   els.socialQueue.innerHTML = posts.map((post) => `
     <article class="queue-item">
-      <h3>${escapeHtml(post.platform)} · ${escapeHtml(post.status)}</h3>
+      <h3>${escapeHtml(post.platform)} ï¿½ ${escapeHtml(post.status)}</h3>
       <p>${escapeHtml(post.title || post.caption).slice(0, 140)}</p>
-      <p>${post.scheduledAt ? escapeHtml(new Date(post.scheduledAt).toLocaleString()) : "Draft"}</p>
+      <p>${post.scheduledAt ? escapeHtml(new Date(post.scheduledAt).toLocaleString()) : t("socialDraftLabel")}</p>
     </article>
   `).join("");
 }
 
 function setSocialStatus(message) {
-  if (els.socialStatus) els.socialStatus.textContent = message;
+  if (!els.socialStatus) return;
+  els.socialStatus.dataset.custom = message === t("socialStatusReady") ? "" : "true";
+  els.socialStatus.textContent = message;
 }
 
 function toDatetimeLocal(date) {

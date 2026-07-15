@@ -121,7 +121,7 @@ app.post("/api/social/config", requireAppKey, async (req, res, next) => {
 });
 
 app.use((req, res) => {
-  res.status(404).json({ error: "Endpoint tidak ditemukan." });
+  res.status(404).json({ error: apiMessage(req, "notFound") });
 });
 
 app.use((error, req, res, next) => {
@@ -169,11 +169,35 @@ function buildCorsOptions() {
         callback(null, true);
         return;
       }
-      callback(new Error(`Origin ${origin} tidak diizinkan oleh CORS_ORIGIN.`));
+      callback(new Error(`Origin ${origin} is not allowed by CORS_ORIGIN.`));
     }
   };
 }
 
+const apiMessages = {
+  id: {
+    invalidAppKey: "APP_API_KEY tidak valid.",
+    notFound: "Endpoint tidak ditemukan.",
+    rateLimit: "Terlalu banyak request. Coba lagi sebentar."
+  },
+  en: {
+    invalidAppKey: "Invalid APP_API_KEY.",
+    notFound: "Endpoint not found.",
+    rateLimit: "Too many requests. Please try again shortly."
+  }
+};
+
+function apiMessage(req, key) {
+  const language = requestLanguage(req);
+  return apiMessages[language]?.[key] || apiMessages.id[key] || key;
+}
+
+function requestLanguage(req) {
+  const bodyLanguage = String(req.body?.language || "").toLowerCase();
+  const acceptLanguage = String(req.header?.("accept-language") || "").toLowerCase();
+  if (bodyLanguage === "en" || acceptLanguage.startsWith("en")) return "en";
+  return "id";
+}
 function requireAppKey(req, res, next) {
   const expected = process.env.APP_API_KEY;
   if (!expected) {
@@ -187,7 +211,7 @@ function requireAppKey(req, res, next) {
     return;
   }
 
-  res.status(401).json({ error: "APP_API_KEY tidak valid." });
+  res.status(401).json({ error: apiMessage(req, "invalidAppKey") });
 }
 
 function rateLimit() {
@@ -209,7 +233,7 @@ function rateLimit() {
     hits.set(key, current);
 
     if (current.count > maxRequests) {
-      res.status(429).json({ error: "Terlalu banyak request. Coba lagi sebentar." });
+      res.status(429).json({ error: apiMessage(req, "rateLimit") });
       return;
     }
 
