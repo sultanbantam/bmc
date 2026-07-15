@@ -45,3 +45,5 @@ Fitur upload buku/paper kurasi disembunyikan dari user biasa dan endpoint backen
 4. Masukkan admin key di browser. Key disimpan hanya di `sessionStorage` browser admin.
 
 Jangan menaruh `ADMIN_API_KEY` di `config.js` karena file frontend bisa dilihat publik.
+
+Trigger Vercel deploy
