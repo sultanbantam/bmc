@@ -22,7 +22,7 @@
       </a>
       <nav class="nav-links" aria-label="Bagian halaman">
         <a href="#workspace">Generator</a>
-        <a href="#knowledge-base">Knowledge</a>
+        <a class="admin-only" href="#knowledge-base" hidden>Knowledge</a>
         <a href="#social-agent">Social Agent</a>
         <a href="#pricing">Harga</a>
         <a href="#faq">FAQ</a>
@@ -165,12 +165,21 @@
         </div>
       </section>
 
-      <section class="knowledge-section" id="knowledge-base">
+      <section class="knowledge-section admin-only" id="knowledge-base" hidden>
         <div class="section-heading compact">
           <p class="eyebrow">Knowledge Base</p>
           <h2>Upload Buku dan Paper Kurasi</h2>
         </div>
-        <div class="knowledge-workbench">
+        <form class="admin-gate" id="admin-gate">
+          <h3>Area admin</h3>
+          <p>Masukkan admin key untuk membuka upload knowledge. User biasa tidak melihat halaman ini.</p>
+          <div class="admin-gate-row">
+            <input id="admin-key-input" type="password" autocomplete="current-password" placeholder="Admin key" />
+            <button class="icon-button primary" type="submit"><span aria-hidden="true">key</span><span>Buka Admin</span></button>
+          </div>
+          <p class="knowledge-status" id="admin-gate-status">Knowledge base hanya untuk admin.</p>
+        </form>
+        <div class="knowledge-workbench" id="knowledge-workbench" hidden>
           <form class="knowledge-form" id="knowledge-form">
             <label for="knowledge-title">Judul sumber</label>
             <input id="knowledge-title" type="text" placeholder="Contoh: Business Model Generation - bab Value Proposition" />
@@ -193,6 +202,7 @@
             <div class="knowledge-actions">
               <button class="icon-button primary" type="submit"><span aria-hidden="true">+</span><span>Upload Knowledge</span></button>
               <button class="icon-button" id="knowledge-refresh" type="button"><span aria-hidden="true">sync</span><span>Refresh</span></button>
+              <button class="icon-button" id="admin-logout" type="button"><span aria-hidden="true">lock</span><span>Keluar Admin</span></button>
             </div>
             <p class="knowledge-status" id="knowledge-status">Knowledge siap menerima sumber kurasi.</p>
           </form>

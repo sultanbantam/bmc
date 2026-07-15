@@ -34,3 +34,14 @@ window.BMC_API_KEY = "";
 Fase berikutnya bisa menambahkan Supabase Auth, Midtrans/Stripe, penyimpanan BMC, RAG pgvector/Pinecone, serta MCP social publishing seperti Kadenzo atau Outpost. Rencana knowledge base kurasi buku/paper ada di `docs/curated-knowledge-base.md`.
 
 Trigger Vercel deploy
+
+## Knowledge Base Admin
+
+Fitur upload buku/paper kurasi disembunyikan dari user biasa dan endpoint backend dilindungi dengan `ADMIN_API_KEY`.
+
+1. Set `ADMIN_API_KEY` di `backend/.env` pada server Contabo.
+2. Restart backend.
+3. Buka admin area lewat `https://www.yourfuture.fun/?admin=1#knowledge-base`.
+4. Masukkan admin key di browser. Key disimpan hanya di `sessionStorage` browser admin.
+
+Jangan menaruh `ADMIN_API_KEY` di `config.js` karena file frontend bisa dilihat publik.

@@ -127,3 +127,14 @@ window.BMC_API_KEY = "";
 ```
 
 Lalu commit dan push ke GitHub agar Vercel redeploy.
+
+
+## Admin Knowledge Base
+
+Endpoint berikut membutuhkan header `x-admin-key` yang cocok dengan `ADMIN_API_KEY`:
+
+- `POST /api/knowledge/upload`
+- `POST /api/knowledge/sources`
+- `POST /api/knowledge/search`
+
+Frontend admin dibuka lewat `?admin=1#knowledge-base`; user biasa tidak melihat menu Knowledge.

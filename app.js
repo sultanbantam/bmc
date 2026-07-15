@@ -13,12 +13,37 @@ function hasBackendConfig() {
   return Boolean(getBackendConfig().baseUrl);
 }
 
-async function requestBackend(path, payload) {
+const ADMIN_SESSION_KEY = "bmc-admin-key";
+
+function getAdminKey() {
+  try {
+    return String(sessionStorage.getItem(ADMIN_SESSION_KEY) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function hasAdminIntent() {
+  const params = new URLSearchParams(window.location.search);
+  const hash = window.location.hash.toLowerCase();
+  return params.has("admin") || hash === "#admin" || hash.startsWith("#admin-") || Boolean(getAdminKey());
+}
+
+function isKnowledgeAdmin() {
+  return Boolean(getAdminKey());
+}
+
+async function requestBackend(path, payload, options = {}) {
   const { baseUrl, apiKey } = getBackendConfig();
   if (!baseUrl) throw new Error(t("apiUrlMissing"));
 
   const headers = { "Content-Type": "application/json" };
   if (apiKey) headers["x-app-key"] = apiKey;
+  if (options.admin) {
+    const adminKey = getAdminKey();
+    if (!adminKey) throw new Error(t("adminKeyMissing"));
+    headers["x-admin-key"] = adminKey;
+  }
 
   const response = await fetch(`${baseUrl}${path}`, {
     method: "POST",
@@ -419,6 +444,14 @@ const translations = {
     knowledgeContentPlaceholder: "Paste ringkasan atau teks yang sudah boleh dipakai oleh AI.",
     knowledgeUploadButton: "Upload Knowledge",
     knowledgeRefreshButton: "Refresh",
+    adminGateTitle: "Area admin",
+    adminGateCopy: "Masukkan admin key untuk membuka upload knowledge. User biasa tidak melihat halaman ini.",
+    adminKeyPlaceholder: "Admin key",
+    adminUnlockButton: "Buka Admin",
+    adminLogoutButton: "Keluar Admin",
+    adminKeyMissing: "Masukkan admin key.",
+    adminUnlocked: "Mode admin aktif.",
+    adminLocked: "Knowledge base hanya untuk admin.",
     socialScheduleLabel: "Jadwal mulai",
     socialSaveDrafts: "Simpan Draft",
     socialSchedulePosts: "Jadwalkan",
@@ -583,6 +616,14 @@ const translations = {
     knowledgeContentPlaceholder: "Paste a curated summary or text that AI is allowed to use.",
     knowledgeUploadButton: "Upload Knowledge",
     knowledgeRefreshButton: "Refresh",
+    adminGateTitle: "Admin area",
+    adminGateCopy: "Enter the admin key to unlock knowledge uploads. Regular users cannot see this area.",
+    adminKeyPlaceholder: "Admin key",
+    adminUnlockButton: "Unlock Admin",
+    adminLogoutButton: "Logout Admin",
+    adminKeyMissing: "Enter the admin key.",
+    adminUnlocked: "Admin mode is active.",
+    adminLocked: "Knowledge base is admin-only.",
     socialScheduleLabel: "Start schedule",
     socialSaveDrafts: "Save Drafts",
     socialSchedulePosts: "Schedule",
@@ -665,6 +706,13 @@ const els = {
   postBoard: document.querySelector("#post-board"),
   generatePosts: document.querySelector("#generate-posts"),
   languageButtons: document.querySelectorAll(".lang-button"),
+  knowledgeNav: document.querySelector('.nav-links a[href="#knowledge-base"]'),
+  knowledgeSection: document.querySelector("#knowledge-base"),
+  adminGate: document.querySelector("#admin-gate"),
+  adminGateStatus: document.querySelector("#admin-gate-status"),
+  adminKeyInput: document.querySelector("#admin-key-input"),
+  adminLogout: document.querySelector("#admin-logout"),
+  knowledgeWorkbench: document.querySelector("#knowledge-workbench"),
   knowledgeForm: document.querySelector("#knowledge-form"),
   knowledgeTitle: document.querySelector("#knowledge-title"),
   knowledgeAuthor: document.querySelector("#knowledge-author"),
@@ -685,7 +733,9 @@ const els = {
 
 function init() {
   restoreState();
+  updateAdminVisibility();
   applyLanguage();
+  updateAdminVisibility();
   renderCanvas();
   renderRisks();
   renderChatIntro();
@@ -693,7 +743,7 @@ function init() {
   renderPosts(generatePosts());
   bindEvents();
   setDefaultSchedule();
-  loadKnowledgeSources();
+  if (isKnowledgeAdmin()) loadKnowledgeSources();
   loadSocialQueue();
   setStatus(t("statusReady"));
 }
@@ -753,6 +803,8 @@ function bindEvents() {
   document.querySelector("#export-html").addEventListener("click", () => downloadFile("bmc-output.html", toStandaloneHtml(), "text/html"));
   document.querySelector("#print-pdf").addEventListener("click", () => window.print());
   els.generatePosts.addEventListener("click", () => renderPosts(generatePosts()));
+  els.adminGate?.addEventListener("submit", unlockAdminKnowledge);
+  els.adminLogout?.addEventListener("click", logoutAdminKnowledge);
   els.knowledgeForm?.addEventListener("submit", uploadKnowledge);
   els.knowledgeFile?.addEventListener("change", loadKnowledgeFile);
   els.knowledgeRefresh?.addEventListener("click", loadKnowledgeSources);
@@ -812,12 +864,13 @@ function setLanguage(language) {
     els.topicInput.value = "";
   }
   applyLanguage();
+  updateAdminVisibility();
   renderCanvas();
   renderRisks();
   renderChatIntro();
   renderSocialControls();
   renderPosts(generatePosts());
-  loadKnowledgeSources();
+  if (isKnowledgeAdmin()) loadKnowledgeSources();
   loadSocialQueue();
   persistState();
   if (state.idea && els.ideaInput.value.trim()) {
@@ -865,6 +918,10 @@ function applyLanguage() {
     ['label[for="chat-input"]', "chatLabel"],
     [".chat-form button", "chatSubmit"],
     ["#knowledge-base .section-heading h2", "knowledgeTitle"],
+    ["#admin-gate h3", "adminGateTitle"],
+    ["#admin-gate p:first-of-type", "adminGateCopy"],
+    ["#admin-gate button span:last-child", "adminUnlockButton"],
+    ["#admin-logout span:last-child", "adminLogoutButton"],
     [".knowledge-actions button:first-child span:last-child", "knowledgeUploadButton"],
     [".knowledge-actions button:last-child span:last-child", "knowledgeRefreshButton"],
     ["#how-it-works .section-heading h2", "workflowTitle"],
@@ -945,7 +1002,8 @@ function applyLanguage() {
     [els.topicInput, "socialTopicPlaceholder"],
     [els.knowledgeTitle, "knowledgeTitlePlaceholder"],
     [els.knowledgeTags, "knowledgeTagsPlaceholder"],
-    [els.knowledgeContent, "knowledgeContentPlaceholder"]
+    [els.knowledgeContent, "knowledgeContentPlaceholder"],
+    [els.adminKeyInput, "adminKeyPlaceholder"]
   ];
   placeholderTargets.forEach(([element, key]) => {
     if (element) element.setAttribute("placeholder", t(key));
@@ -963,6 +1021,7 @@ function applyLanguage() {
     element.dataset.idea = t(ideaKey);
   });
 
+  if (els.adminGateStatus && !els.adminGateStatus.dataset.custom) setAdminGateStatus(t("adminLocked"));
   if (els.knowledgeStatus && !els.knowledgeStatus.dataset.custom) setKnowledgeStatus(t("knowledgeStatusReady"));
   if (els.socialStatus && !els.socialStatus.dataset.custom) setSocialStatus(t("socialStatusReady"));
 
@@ -1885,7 +1944,42 @@ function renderPosts(posts) {
   });
 }
 
+function updateAdminVisibility() {
+  const canOpenAdmin = hasAdminIntent();
+  const unlocked = isKnowledgeAdmin();
+  if (els.knowledgeSection) els.knowledgeSection.hidden = !canOpenAdmin;
+  if (els.knowledgeNav) els.knowledgeNav.hidden = !unlocked;
+  if (els.adminGate) els.adminGate.hidden = !canOpenAdmin || unlocked;
+  if (els.knowledgeWorkbench) els.knowledgeWorkbench.hidden = !unlocked;
+}
+
+function unlockAdminKnowledge(event) {
+  event.preventDefault();
+  const key = els.adminKeyInput?.value.trim() || "";
+  if (!key) {
+    setAdminGateStatus(t("adminKeyMissing"));
+    return;
+  }
+  sessionStorage.setItem(ADMIN_SESSION_KEY, key);
+  setAdminGateStatus(t("adminUnlocked"));
+  updateAdminVisibility();
+  loadKnowledgeSources();
+}
+
+function logoutAdminKnowledge() {
+  sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  if (els.adminKeyInput) els.adminKeyInput.value = "";
+  setAdminGateStatus(t("adminLocked"));
+  updateAdminVisibility();
+}
+
+function setAdminGateStatus(message) {
+  if (!els.adminGateStatus) return;
+  els.adminGateStatus.dataset.custom = message === t("adminLocked") ? "" : "true";
+  els.adminGateStatus.textContent = message;
+}
 async function loadKnowledgeFile() {
+  if (!isKnowledgeAdmin()) return;
   const file = els.knowledgeFile?.files?.[0];
   if (!file) return;
   const ext = file.name.split(".").pop().toLowerCase();
@@ -1901,6 +1995,10 @@ async function loadKnowledgeFile() {
 
 async function uploadKnowledge(event) {
   event.preventDefault();
+  if (!isKnowledgeAdmin()) {
+    setKnowledgeStatus(t("adminLocked"));
+    return;
+  }
   if (!hasBackendConfig()) {
     setKnowledgeStatus(t("backendConfigMissing"));
     return;
@@ -1917,7 +2015,7 @@ async function uploadKnowledge(event) {
       fileName: file?.name || "",
       content: els.knowledgeContent.value
     };
-    const result = await requestBackend("/api/knowledge/upload", payload);
+    const result = await requestBackend("/api/knowledge/upload", payload, { admin: true });
     setKnowledgeStatus(interpolate(t("knowledgeSaved"), { title: result.source.title, chunks: result.chunks }));
     els.knowledgeForm.reset();
     await loadKnowledgeSources();
@@ -1927,14 +2025,14 @@ async function uploadKnowledge(event) {
 }
 
 async function loadKnowledgeSources() {
-  if (!els.knowledgeList) return;
+  if (!els.knowledgeList || !isKnowledgeAdmin()) return;
   if (!hasBackendConfig()) {
     els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>${t("knowledgeBackendInactiveTitle")}</h3><p>${t("knowledgeBackendInactiveBody")}</p></article>`;
     return;
   }
 
   try {
-    const data = await requestBackend("/api/knowledge/sources", {});
+    const data = await requestBackend("/api/knowledge/sources", { language: state.language }, { admin: true });
     renderKnowledgeSources(data.sources || []);
   } catch (error) {
     els.knowledgeList.innerHTML = `<article class="knowledge-item"><h3>${t("knowledgeUnavailableTitle")}</h3><p>${escapeHtml(error.message)}</p></article>`;

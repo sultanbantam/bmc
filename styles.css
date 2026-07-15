@@ -34,6 +34,10 @@ body {
   color: var(--ink);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 button,
 input,
 textarea {
@@ -1067,6 +1071,43 @@ input:focus {
   background: #f7faf7;
 }
 
+.admin-gate {
+  display: grid;
+  gap: 12px;
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow);
+}
+
+.admin-gate h3,
+.admin-gate p {
+  margin: 0;
+}
+
+.admin-gate p {
+  color: var(--muted);
+}
+
+.admin-gate-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.admin-gate input {
+  width: 100%;
+  border: 1px solid #c9d5cf;
+  border-radius: var(--radius);
+  background: white;
+  color: var(--ink);
+  font: inherit;
+  padding: 11px 12px;
+}
+
 .knowledge-workbench {
   display: grid;
   grid-template-columns: minmax(280px, 420px) 1fr;
@@ -1317,5 +1358,11 @@ input:focus {
   .bmc-block {
     break-inside: avoid;
     margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-gate-row {
+    grid-template-columns: 1fr;
   }
 }

@@ -51,7 +51,7 @@ app.post("/api/bmc/chat", requireAppKey, async (req, res, next) => {
   }
 });
 
-app.post("/api/knowledge/upload", requireAppKey, async (req, res, next) => {
+app.post("/api/knowledge/upload", requireAppKey, requireAdminKey, async (req, res, next) => {
   try {
     res.json(uploadKnowledgeSource(req.body));
   } catch (error) {
@@ -59,7 +59,7 @@ app.post("/api/knowledge/upload", requireAppKey, async (req, res, next) => {
   }
 });
 
-app.post("/api/knowledge/sources", requireAppKey, async (req, res, next) => {
+app.post("/api/knowledge/sources", requireAppKey, requireAdminKey, async (req, res, next) => {
   try {
     res.json({ sources: listKnowledgeSources() });
   } catch (error) {
@@ -67,7 +67,7 @@ app.post("/api/knowledge/sources", requireAppKey, async (req, res, next) => {
   }
 });
 
-app.post("/api/knowledge/search", requireAppKey, async (req, res, next) => {
+app.post("/api/knowledge/search", requireAppKey, requireAdminKey, async (req, res, next) => {
   try {
     const matches = searchKnowledge(req.body?.query, {
       language: req.body?.language,
@@ -177,11 +177,15 @@ function buildCorsOptions() {
 const apiMessages = {
   id: {
     invalidAppKey: "APP_API_KEY tidak valid.",
+    invalidAdminKey: "Admin key tidak valid.",
+    adminKeyNotConfigured: "ADMIN_API_KEY belum dikonfigurasi di backend.",
     notFound: "Endpoint tidak ditemukan.",
     rateLimit: "Terlalu banyak request. Coba lagi sebentar."
   },
   en: {
     invalidAppKey: "Invalid APP_API_KEY.",
+    invalidAdminKey: "Invalid admin key.",
+    adminKeyNotConfigured: "ADMIN_API_KEY is not configured on the backend.",
     notFound: "Endpoint not found.",
     rateLimit: "Too many requests. Please try again shortly."
   }
@@ -212,6 +216,22 @@ function requireAppKey(req, res, next) {
   }
 
   res.status(401).json({ error: apiMessage(req, "invalidAppKey") });
+}
+
+function requireAdminKey(req, res, next) {
+  const expected = process.env.ADMIN_API_KEY;
+  if (!expected) {
+    res.status(503).json({ error: apiMessage(req, "adminKeyNotConfigured") });
+    return;
+  }
+
+  const received = req.header("x-admin-key");
+  if (received === expected) {
+    next();
+    return;
+  }
+
+  res.status(403).json({ error: apiMessage(req, "invalidAdminKey") });
 }
 
 function rateLimit() {
