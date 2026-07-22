@@ -1483,7 +1483,8 @@ function extractEnglishContext(idea, sector) {
 
 function renderCanvas() {
   els.grid.innerHTML = "";
-  blocks.forEach((block, index) => {
+  const visibleBlocks = blocks.slice(0, 9);
+  visibleBlocks.forEach((block, index) => {
     const node = els.blockTemplate.content.firstElementChild.cloneNode(true);
     node.dataset.tone = block.tone;
     if (block.key === "costStructure" || block.key === "revenueStreams") node.classList.add("wide");
@@ -1668,6 +1669,87 @@ function blockActionAdvice(block, sector, context) {
   };
   return advice[block.key] || advice.keyActivities;
 }
+function cleanComparableWord(word) {
+  return String(word || "")
+    .toLowerCase()
+    .replace(/^[^a-z0-9]+|[^a-z0-9]+$/gi, "");
+}
+
+function sameWord(a, b) {
+  const left = cleanComparableWord(a);
+  const right = cleanComparableWord(b);
+  return left && right && left === right;
+}
+
+function sameWordWindow(words, startA, startB, size) {
+  for (let offset = 0; offset < size; offset += 1) {
+    if (!sameWord(words[startA + offset], words[startB + offset])) return false;
+  }
+  return true;
+}
+
+function removeAdjacentDuplicatePhrases(words) {
+  let cleaned = [...words];
+  let changed = true;
+
+  while (changed) {
+    changed = false;
+
+    for (let size = Math.min(10, Math.floor(cleaned.length / 2)); size >= 1; size -= 1) {
+      for (let index = 0; index <= cleaned.length - size * 2; index += 1) {
+        if (sameWordWindow(cleaned, index, index + size, size)) {
+          cleaned.splice(index + size, size);
+          changed = true;
+          break;
+        }
+      }
+      if (changed) break;
+    }
+  }
+
+  return cleaned;
+}
+
+function cleanVoiceTranscript(text) {
+  const normalized = String(text || "").replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+
+  const words = normalized.split(" ");
+  return removeAdjacentDuplicatePhrases(words).join(" ").trim();
+}
+
+function mergeVoiceTranscript(existingText, sessionText) {
+  const existing = cleanVoiceTranscript(existingText);
+  const session = cleanVoiceTranscript(sessionText);
+  if (!session) return existing;
+  if (!existing) return session;
+
+  const existingWords = existing.split(" ");
+  const sessionWords = session.split(" ");
+  const maxOverlap = Math.min(existingWords.length, sessionWords.length);
+
+  for (let size = maxOverlap; size > 0; size -= 1) {
+    if (sameWordWindow([...existingWords, ...sessionWords], existingWords.length - size, existingWords.length, size)) {
+      return cleanVoiceTranscript(`${existingWords.join(" ")} ${sessionWords.slice(size).join(" ")}`);
+    }
+  }
+
+  if (existing.toLowerCase().includes(session.toLowerCase())) return existing;
+  return cleanVoiceTranscript(`${existing} ${session}`);
+}
+
+function collectSpeechTranscript(event) {
+  const chunks = [];
+
+  for (let index = 0; index < event.results.length; index += 1) {
+    const result = event.results[index];
+    const transcript = result?.[0]?.transcript;
+    if (transcript) chunks.push(transcript);
+  }
+
+  return cleanVoiceTranscript(chunks.join(" "));
+}
+
 function startVoiceInput() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
@@ -1679,19 +1761,23 @@ function startVoiceInput() {
 
   const recognition = new SpeechRecognition();
   recognition.lang = state.language === "en" ? "en-US" : "id-ID";
-  recognition.interimResults = false;
+  recognition.interimResults = true;
   recognition.maxAlternatives = 1;
+  const baseText = cleanVoiceTranscript(els.ideaInput.value);
+  let sessionTranscript = "";
   setStatus(t("statusListening"));
   recognition.start();
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    els.ideaInput.value = `${els.ideaInput.value} ${transcript}`.trim();
+    sessionTranscript = collectSpeechTranscript(event) || sessionTranscript;
+    els.ideaInput.value = mergeVoiceTranscript(baseText, sessionTranscript);
     setStatus(t("statusVoiceCaptured"));
   };
   recognition.onerror = () => setStatus(t("statusVoiceFailed"));
-  recognition.onend = () => setTimeout(() => setStatus(t("statusReady")), 1200);
+  recognition.onend = () => {
+    els.ideaInput.value = cleanVoiceTranscript(els.ideaInput.value);
+    setTimeout(() => setStatus(t("statusReady")), 1200);
+  };
 }
-
 function handleFile(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -2048,7 +2134,7 @@ function renderKnowledgeSources(sources) {
   els.knowledgeList.innerHTML = sources.map((source) => `
     <article class="knowledge-item">
       <h3>${escapeHtml(source.title)}</h3>
-      <p>${escapeHtml([source.author, source.year].filter(Boolean).join(" - ") || t("curatedSourceFallback"))} � ${source.chunks} chunk � ${escapeHtml(source.language || "id")}</p>
+      <p>${escapeHtml([source.author, source.year].filter(Boolean).join(" - ") || t("curatedSourceFallback"))} - ${source.chunks} chunk - ${escapeHtml(source.language || "id")}</p>
       <p>${escapeHtml((source.tags || []).join(", "))}</p>
     </article>
   `).join("");
@@ -2134,7 +2220,7 @@ function renderSocialQueue(posts) {
 
   els.socialQueue.innerHTML = posts.map((post) => `
     <article class="queue-item">
-      <h3>${escapeHtml(post.platform)} � ${escapeHtml(post.status)}</h3>
+      <h3>${escapeHtml(post.platform)} - ${escapeHtml(post.status)}</h3>
       <p>${escapeHtml(post.title || post.caption).slice(0, 140)}</p>
       <p>${post.scheduledAt ? escapeHtml(new Date(post.scheduledAt).toLocaleString()) : t("socialDraftLabel")}</p>
     </article>
