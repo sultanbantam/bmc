@@ -10,8 +10,20 @@
     />
     <link rel="preload" href="assets/bmc-hero.png" as="image" />
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      body:not(.auth-resolved) > *:not(#sso-gatekeeper-modal):not(#initial-loader) {
+          display: none !important;
+      }
+      #initial-loader {
+          position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+          background: #111827; display: flex; align-items: center; justify-content: center;
+          z-index: 9999999; color: #fbbf24; font-family: sans-serif; font-size: 1.5rem; font-weight: bold;
+      }
+    </style>
+    <script type="module" src="gatekeeper.js"></script>
   </head>
   <body>
+    <div id="initial-loader">Memuat Autentikasi...</div>
     <header class="topbar" aria-label="Navigasi utama">
       <a class="brand" href="#hero" aria-label="BMC AI Agent Platform">
         <span class="brand-mark">B</span>
