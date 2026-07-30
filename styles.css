@@ -204,6 +204,7 @@ a {
   display: grid;
   align-items: center;
   min-height: calc(100vh - var(--topbar));
+  min-height: calc(100svh - var(--topbar));
   overflow: hidden;
   isolation: isolate;
 }
@@ -218,7 +219,22 @@ a {
 
 .hero-media {
   z-index: -2;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: auto;
+  max-width: none;
   object-fit: cover;
+  object-position: center top;
+  transform: none;
+}
+
+@media (max-aspect-ratio: 1717/916) {
+  .hero-media {
+    left: 50%;
+    width: auto;
+    height: 100%;
+    transform: translateX(-50%);
+  }
 }
 
 .hero-shade {
