@@ -84,16 +84,16 @@ a {
 .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-width: 210px;
+  gap: 7px;
+  min-width: 138px;
 }
 
 .brand-logo {
-  width: 46px;
-  height: 46px;
+  width: 34px;
+  height: 34px;
   flex: 0 0 auto;
-  border-radius: 12px;
-  box-shadow: 0 10px 24px rgba(17, 123, 121, 0.16);
+  border-radius: 6px;
+  box-shadow: 0 6px 14px rgba(17, 123, 121, 0.12);
 }
 .brand strong,
 .brand small {
@@ -103,7 +103,7 @@ a {
 
 .brand small {
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.58rem;
   margin-top: 3px;
 }
 
