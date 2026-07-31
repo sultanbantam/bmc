@@ -333,6 +333,7 @@ h1 {
 }
 
 .workspace-section,
+.proposal-section,
 .social-section,
 .features-section,
 .pricing-section,
@@ -878,6 +879,186 @@ input:focus {
   line-height: 1.65;
 }
 
+.proposal-section {
+  background: #f8fbf9;
+  border-block: 1px solid var(--line);
+}
+
+.proposal-workbench {
+  display: grid;
+  grid-template-columns: minmax(280px, 430px) minmax(0, 1fr);
+  gap: 18px;
+  width: min(1320px, 100%);
+  margin: 0 auto;
+  align-items: start;
+}
+
+.proposal-form,
+.proposal-output {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.proposal-form h3 {
+  margin: 0;
+  font-size: 1.16rem;
+  line-height: 1.2;
+}
+
+.proposal-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.proposal-field-grid label,
+.proposal-form > label {
+  display: grid;
+  gap: 7px;
+}
+
+.proposal-form textarea {
+  min-height: 112px;
+}
+
+.proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.proposal-status {
+  min-height: 24px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.investor-score {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(17, 123, 121, 0.1), rgba(230, 111, 78, 0.08)),
+    #fff;
+}
+
+.investor-score strong {
+  color: var(--teal-dark);
+  font-size: clamp(2.2rem, 6vw, 4.1rem);
+  line-height: 0.95;
+}
+
+.investor-score p {
+  margin: 0;
+  color: #394744;
+  line-height: 1.6;
+}
+
+.score-breakdown {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.score-breakdown article {
+  display: grid;
+  gap: 6px;
+  min-height: 118px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.score-breakdown h4,
+.proposal-section-card h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.score-breakdown span {
+  color: var(--teal-dark);
+  font-weight: 900;
+}
+
+.score-breakdown p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.proposal-document {
+  display: grid;
+  gap: 12px;
+}
+
+.proposal-section-card,
+.empty-state {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.proposal-section-card p,
+.proposal-section-card li,
+.empty-state p {
+  color: #3c4b48;
+  line-height: 1.65;
+}
+
+.proposal-section-card p {
+  margin: 8px 0 0;
+}
+
+.proposal-section-card ul,
+.proposal-section-card ol {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding-left: 20px;
+}
+
+.proposal-data-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.proposal-data-grid div {
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #f8faf8;
+}
+
+.proposal-data-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.proposal-data-grid strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink);
+  line-height: 1.3;
+}
 .social-section {
   background: #f4f7f6;
   border-block: 1px solid var(--line);
@@ -1231,6 +1412,7 @@ input:focus {
   }
 
   .app-shell,
+  .proposal-workbench,
   .social-workbench,
   .knowledge-workbench,
   .risk-layout {
@@ -1292,7 +1474,10 @@ input:focus {
     grid-template-columns: 1fr;
   }
 
-  .knowledge-row {
+  .knowledge-row,
+  .proposal-field-grid,
+  .proposal-data-grid,
+  .score-breakdown {
     grid-template-columns: 1fr;
   }
 
@@ -1310,11 +1495,14 @@ input:focus {
   .tab-view,
   .canvas-toolbar,
   .tool-panel,
-  .social-workbench {
+  .social-workbench,
+  .proposal-form,
+  .proposal-output {
     padding: 14px;
   }
 
   .workspace-section,
+  .proposal-section,
   .social-section,
   .features-section,
   .pricing-section,

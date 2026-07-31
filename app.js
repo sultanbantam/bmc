@@ -76,6 +76,17 @@ async function answerQuestionWithBackend(question) {
   return String(data.answer || answerQuestion(question)).trim();
 }
 
+async function generateInvestorProposalViaBackend(assumptions) {
+  const data = await requestBackend("/api/investor/proposal", {
+    idea: state.idea,
+    bmc: state.bmc,
+    risks: state.risks,
+    assumptions,
+    language: state.language
+  });
+  return normalizeInvestorProposal(data, assumptions);
+}
+
 function normalizeRemoteBmc(data, idea) {
   const sector = detectSector(idea);
   const fallbackBmc = buildBmc(idea, sector);
@@ -487,6 +498,51 @@ const translations = {
     knowledgeNoSourcesTitle: "Belum ada sumber",
     knowledgeNoSourcesBody: "Upload teks kurasi buku/paper untuk mulai memberi pengetahuan ke agent.",
     curatedSourceFallback: "Sumber kurasi",
+    navInvestor: "Proposal Investor",
+    proposalEyebrow: "Proposal investor",
+    proposalTitle: "Investor Proposal Builder",
+    proposalCopy: "Ubah BMC menjadi proposal bisnis yang lebih siap diajukan ke calon investor, lengkap dengan readiness score, asumsi keuangan, penggunaan dana, dan milestone.",
+    proposalFormKicker: "Data proposal",
+    proposalFormTitle: "Lengkapi asumsi investor",
+    fundingAskLabel: "Target pendanaan",
+    fundingAskPlaceholder: "Contoh: Rp250 juta untuk runway 12 bulan",
+    currentRevenueLabel: "Revenue saat ini",
+    currentRevenuePlaceholder: "Contoh: Rp8 juta/bulan dari 12 pelanggan pilot",
+    productPriceLabel: "Harga/paket",
+    productPricePlaceholder: "Contoh: Rp50.000/bulan atau Rp500.000/paket implementasi",
+    grossMarginLabel: "Gross margin",
+    grossMarginPlaceholder: "Contoh: 65% setelah biaya API, hosting, support",
+    monthlyCustomersLabel: "Pelanggan/bulan",
+    monthlyCustomersPlaceholder: "Contoh: 120 signup, 18 pengguna aktif, 5 pelanggan bayar",
+    tractionEvidenceLabel: "Bukti traction",
+    tractionEvidencePlaceholder: "Tuliskan data nyata: waitlist, pengguna aktif, revenue, LOI, testimoni, pilot, partner.",
+    useOfFundsLabel: "Rencana penggunaan dana",
+    useOfFundsPlaceholder: "Contoh: 40% produk, 35% akuisisi, 15% sales, 10% legal/operasional.",
+    milestonesLabel: "Milestone 7-12 bulan",
+    milestonesPlaceholder: "Contoh: 1.000 BMC dibuat, MRR Rp50 juta, 3 komunitas partner, churn <5%.",
+    proposalGenerateButton: "Buat Proposal Investor",
+    proposalExportMd: "Markdown",
+    proposalExportHtml: "HTML",
+    proposalPrintPdf: "Print PDF",
+    proposalStatusIdle: "Proposal siap dibuat dari BMC.",
+    proposalStatusFillIdea: "Isi ide bisnis atau buat BMC terlebih dahulu.",
+    proposalStatusGenerating: "Menyusun proposal investor...",
+    proposalStatusReady: "Proposal investor siap.",
+    proposalStatusFallback: "Proposal dibuat dengan fallback lokal.",
+    proposalScoreTitle: "Investor readiness score",
+    proposalScoreEmpty: "Generate BMC dan isi asumsi investor untuk melihat skor kesiapan.",
+    proposalEmptyTitle: "Belum ada proposal",
+    proposalEmptyBody: "Buat BMC terlebih dahulu, lengkapi data investor, lalu klik Buat Proposal Investor.",
+    proposalFinancialSnapshot: "Snapshot keuangan",
+    proposalDataEvidence: "Data dan bukti",
+    proposalNoData: "Belum diisi",
+    proposalScoreBmc: "Kejelasan BMC",
+    proposalScoreFunding: "Target pendanaan",
+    proposalScorePricing: "Pricing dan margin",
+    proposalScoreTraction: "Traction",
+    proposalScoreUseFunds: "Use of funds",
+    proposalScoreMilestone: "Milestone dan KPI",
+    proposalExportEmpty: "Buat proposal investor terlebih dahulu.",
     socialStatusReady: "Draft sosial siap dibuat.",
     socialDraftsSaved: "{count} draft tersimpan.",
     socialDraftSaveFailed: "Simpan draft gagal: {message}",
@@ -659,6 +715,51 @@ const translations = {
     knowledgeNoSourcesTitle: "No sources yet",
     knowledgeNoSourcesBody: "Upload curated book/paper text to start giving the agent approved knowledge.",
     curatedSourceFallback: "Curated source",
+    navInvestor: "Investor Proposal",
+    proposalEyebrow: "Investor proposal",
+    proposalTitle: "Investor Proposal Builder",
+    proposalCopy: "Turn the BMC into a more investor-ready business proposal with a readiness score, financial assumptions, use of funds, and milestones.",
+    proposalFormKicker: "Proposal data",
+    proposalFormTitle: "Complete investor assumptions",
+    fundingAskLabel: "Funding ask",
+    fundingAskPlaceholder: "Example: Rp250 million for a 12-month runway",
+    currentRevenueLabel: "Current revenue",
+    currentRevenuePlaceholder: "Example: Rp8 million/month from 12 pilot customers",
+    productPriceLabel: "Price/package",
+    productPricePlaceholder: "Example: Rp50,000/month or Rp500,000 implementation package",
+    grossMarginLabel: "Gross margin",
+    grossMarginPlaceholder: "Example: 65% after API, hosting, and support costs",
+    monthlyCustomersLabel: "Monthly customers",
+    monthlyCustomersPlaceholder: "Example: 120 signups, 18 active users, 5 paying customers",
+    tractionEvidenceLabel: "Traction evidence",
+    tractionEvidencePlaceholder: "Write real evidence: waitlist, active users, revenue, LOIs, testimonials, pilots, partners.",
+    useOfFundsLabel: "Use of funds",
+    useOfFundsPlaceholder: "Example: 40% product, 35% acquisition, 15% sales, 10% legal/operations.",
+    milestonesLabel: "7-12 month milestones",
+    milestonesPlaceholder: "Example: 1,000 BMCs created, Rp50m MRR, 3 community partners, churn <5%.",
+    proposalGenerateButton: "Create Investor Proposal",
+    proposalExportMd: "Markdown",
+    proposalExportHtml: "HTML",
+    proposalPrintPdf: "Print PDF",
+    proposalStatusIdle: "Proposal is ready to be generated from the BMC.",
+    proposalStatusFillIdea: "Add a business idea or create a BMC first.",
+    proposalStatusGenerating: "Creating investor proposal...",
+    proposalStatusReady: "Investor proposal is ready.",
+    proposalStatusFallback: "Proposal created with local fallback.",
+    proposalScoreTitle: "Investor readiness score",
+    proposalScoreEmpty: "Generate a BMC and add investor assumptions to see the readiness score.",
+    proposalEmptyTitle: "No proposal yet",
+    proposalEmptyBody: "Create a BMC first, complete the investor data, then click Create Investor Proposal.",
+    proposalFinancialSnapshot: "Financial snapshot",
+    proposalDataEvidence: "Data and evidence",
+    proposalNoData: "Not provided yet",
+    proposalScoreBmc: "BMC clarity",
+    proposalScoreFunding: "Funding ask",
+    proposalScorePricing: "Pricing and margin",
+    proposalScoreTraction: "Traction",
+    proposalScoreUseFunds: "Use of funds",
+    proposalScoreMilestone: "Milestones and KPIs",
+    proposalExportEmpty: "Create an investor proposal first.",
     socialStatusReady: "Social drafts are ready to create.",
     socialDraftsSaved: "{count} drafts saved.",
     socialDraftSaveFailed: "Save draft failed: {message}",
@@ -682,7 +783,9 @@ const state = {
   language: "id",
   selectedPlatforms: new Set(["Instagram", "LinkedIn", "X"]),
   selectedTopic: topicsByLanguage.id[0],
-  socialPosts: []
+  socialPosts: [],
+  proposal: null,
+  proposalAssumptions: {}
 };
 
 const els = {
@@ -727,6 +830,22 @@ const els = {
   saveSocialDrafts: document.querySelector("#save-social-drafts"),
   scheduleSocialPosts: document.querySelector("#schedule-social-posts"),
   publishDuePosts: document.querySelector("#publish-due-posts"),
+  proposalForm: document.querySelector("#proposal-form"),
+  fundingAsk: document.querySelector("#funding-ask"),
+  currentRevenue: document.querySelector("#current-revenue"),
+  productPrice: document.querySelector("#product-price"),
+  grossMargin: document.querySelector("#gross-margin"),
+  monthlyCustomers: document.querySelector("#monthly-customers"),
+  tractionEvidence: document.querySelector("#traction-evidence"),
+  useOfFunds: document.querySelector("#use-of-funds"),
+  milestones: document.querySelector("#milestones"),
+  generateProposal: document.querySelector("#generate-proposal"),
+  exportProposalMd: document.querySelector("#export-proposal-md"),
+  exportProposalHtml: document.querySelector("#export-proposal-html"),
+  printProposal: document.querySelector("#print-proposal"),
+  proposalStatus: document.querySelector("#proposal-status"),
+  investorScore: document.querySelector("#investor-score"),
+  proposalDocument: document.querySelector("#proposal-document"),
   socialStatus: document.querySelector("#social-status"),
   socialQueue: document.querySelector("#social-queue")
 };
@@ -741,6 +860,8 @@ function init() {
   renderChatIntro();
   renderSocialControls();
   renderPosts(generatePosts());
+  populateProposalForm();
+  renderInvestorProposal();
   bindEvents();
   setDefaultSchedule();
   if (isKnowledgeAdmin()) loadKnowledgeSources();
@@ -811,6 +932,22 @@ function bindEvents() {
   els.saveSocialDrafts?.addEventListener("click", saveSocialDrafts);
   els.scheduleSocialPosts?.addEventListener("click", scheduleSocialPosts);
   els.publishDuePosts?.addEventListener("click", publishDuePosts);
+  els.proposalForm?.addEventListener("submit", generateInvestorProposal);
+  els.exportProposalMd?.addEventListener("click", () => {
+    if (!state.proposal) {
+      setProposalStatus(t("proposalExportEmpty"));
+      return;
+    }
+    downloadFile("investor-proposal.md", toProposalMarkdown(), "text/markdown");
+  });
+  els.exportProposalHtml?.addEventListener("click", () => {
+    if (!state.proposal) {
+      setProposalStatus(t("proposalExportEmpty"));
+      return;
+    }
+    downloadFile("investor-proposal.html", toProposalStandaloneHtml(), "text/html");
+  });
+  els.printProposal?.addEventListener("click", printInvestorProposal);
   els.topicInput.addEventListener("input", () => {
     state.selectedTopic = els.topicInput.value.trim() || getTopics()[0];
   });
@@ -824,6 +961,8 @@ function restoreState() {
     state.risks = saved.risks || state.risks;
     state.idea = saved.idea || "";
     state.language = ["id", "en"].includes(saved.language) ? saved.language : "id";
+    state.proposal = saved.proposal || null;
+    state.proposalAssumptions = saved.proposalAssumptions || {};
     els.ideaInput.value = state.idea;
   } catch {
     localStorage.removeItem("bmc-ai-platform");
@@ -837,7 +976,9 @@ function persistState() {
       bmc: state.bmc,
       risks: state.risks,
       idea: state.idea,
-      language: state.language
+      language: state.language,
+      proposal: state.proposal,
+      proposalAssumptions: state.proposalAssumptions
     })
   );
   setStatus(t("statusSaved"));
@@ -870,6 +1011,9 @@ function setLanguage(language) {
   renderChatIntro();
   renderSocialControls();
   renderPosts(generatePosts());
+  if (state.proposal) state.proposal = buildLocalInvestorProposal(state.proposalAssumptions);
+  applyProposalLabelText();
+  renderInvestorProposal();
   if (isKnowledgeAdmin()) loadKnowledgeSources();
   loadSocialQueue();
   persistState();
@@ -890,6 +1034,7 @@ function applyLanguage() {
 
   const textTargets = [
     ['.nav-links a[href="#knowledge-base"]', 'navKnowledge'],
+    ['.nav-links a[href="#investor-proposal"]', 'navInvestor'],
     ['.nav-links a[href="#pricing"]', 'navPricing'],
     ['.nav-links a[href="#faq"]', 'navFaq'],
     [".topbar-cta", "start"],
@@ -931,6 +1076,15 @@ function applyLanguage() {
     [".step-grid article:nth-child(2) p", "step2Copy"],
     [".step-grid article:nth-child(3) h3", "step3Title"],
     [".step-grid article:nth-child(3) p", "step3Copy"],
+    ["#investor-proposal .section-heading .eyebrow", "proposalEyebrow"],
+    ["#investor-proposal .section-heading h2", "proposalTitle"],
+    ["#investor-proposal .section-heading p:last-child", "proposalCopy"],
+    ["#investor-proposal .proposal-form .panel-kicker", "proposalFormKicker"],
+    ["#investor-proposal .proposal-form h3", "proposalFormTitle"],
+    ["#generate-proposal span:last-child", "proposalGenerateButton"],
+    ["#export-proposal-md span:last-child", "proposalExportMd"],
+    ["#export-proposal-html span:last-child", "proposalExportHtml"],
+    ["#print-proposal span:last-child", "proposalPrintPdf"],
     ["#social-agent .section-heading p:last-child", "socialCopy"],
     ['label[for="topic-input"]', "socialTopicLabel"],
     [".social-controls label:nth-of-type(2)", "socialPlatformLabel"],
@@ -1003,7 +1157,15 @@ function applyLanguage() {
     [els.knowledgeTitle, "knowledgeTitlePlaceholder"],
     [els.knowledgeTags, "knowledgeTagsPlaceholder"],
     [els.knowledgeContent, "knowledgeContentPlaceholder"],
-    [els.adminKeyInput, "adminKeyPlaceholder"]
+    [els.adminKeyInput, "adminKeyPlaceholder"],
+    [els.fundingAsk, "fundingAskPlaceholder"],
+    [els.currentRevenue, "currentRevenuePlaceholder"],
+    [els.productPrice, "productPricePlaceholder"],
+    [els.grossMargin, "grossMarginPlaceholder"],
+    [els.monthlyCustomers, "monthlyCustomersPlaceholder"],
+    [els.tractionEvidence, "tractionEvidencePlaceholder"],
+    [els.useOfFunds, "useOfFundsPlaceholder"],
+    [els.milestones, "milestonesPlaceholder"]
   ];
   placeholderTargets.forEach(([element, key]) => {
     if (element) element.setAttribute("placeholder", t(key));
@@ -1024,6 +1186,8 @@ function applyLanguage() {
   if (els.adminGateStatus && !els.adminGateStatus.dataset.custom) setAdminGateStatus(t("adminLocked"));
   if (els.knowledgeStatus && !els.knowledgeStatus.dataset.custom) setKnowledgeStatus(t("knowledgeStatusReady"));
   if (els.socialStatus && !els.socialStatus.dataset.custom) setSocialStatus(t("socialStatusReady"));
+  if (els.proposalStatus && !els.proposalStatus.dataset.custom) setProposalStatus(t("proposalStatusIdle"));
+  applyProposalLabelText();
 
   if (!state.idea) els.canvasTitle.textContent = t("canvasTitle");
   setStatus(t("statusReady"));
@@ -1073,6 +1237,10 @@ async function generateBmcFromInput() {
 
   renderCanvas();
   renderRisks();
+  if (state.proposal) {
+    state.proposal = buildLocalInvestorProposal(state.proposalAssumptions);
+    renderInvestorProposal();
+  }
   renderChatIntro();
   if (fallbackNotice) addMessage("ai", fallbackNotice);
   persistState();
@@ -1840,6 +2008,355 @@ function downloadFile(filename, content, type) {
   link.remove();
   URL.revokeObjectURL(url);
   setStatus(t("statusExportReady"));
+}
+
+function collectProposalAssumptions() {
+  return {
+    fundingAsk: els.fundingAsk?.value.trim() || "",
+    currentRevenue: els.currentRevenue?.value.trim() || "",
+    productPrice: els.productPrice?.value.trim() || "",
+    grossMargin: els.grossMargin?.value.trim() || "",
+    monthlyCustomers: els.monthlyCustomers?.value.trim() || "",
+    tractionEvidence: els.tractionEvidence?.value.trim() || "",
+    useOfFunds: els.useOfFunds?.value.trim() || "",
+    milestones: els.milestones?.value.trim() || ""
+  };
+}
+
+function populateProposalForm() {
+  const values = state.proposalAssumptions || {};
+  [
+    [els.fundingAsk, values.fundingAsk],
+    [els.currentRevenue, values.currentRevenue],
+    [els.productPrice, values.productPrice],
+    [els.grossMargin, values.grossMargin],
+    [els.monthlyCustomers, values.monthlyCustomers],
+    [els.tractionEvidence, values.tractionEvidence],
+    [els.useOfFunds, values.useOfFunds],
+    [els.milestones, values.milestones]
+  ].forEach(([element, value]) => {
+    if (element) element.value = value || "";
+  });
+  applyProposalLabelText();
+}
+
+function applyProposalLabelText() {
+  [
+    ["funding-ask", "fundingAskLabel"],
+    ["current-revenue", "currentRevenueLabel"],
+    ["product-price", "productPriceLabel"],
+    ["gross-margin", "grossMarginLabel"],
+    ["monthly-customers", "monthlyCustomersLabel"],
+    ["traction-evidence", "tractionEvidenceLabel"],
+    ["use-of-funds", "useOfFundsLabel"],
+    ["milestones", "milestonesLabel"]
+  ].forEach(([id, key]) => {
+    const label = document.querySelector(`label[for="${id}"]`);
+    if (!label) return;
+    const textNode = Array.from(label.childNodes).find((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+    if (textNode) textNode.textContent = `\n                ${t(key)}\n                `;
+  });
+}
+
+async function generateInvestorProposal(event) {
+  event?.preventDefault();
+  const typedIdea = els.ideaInput?.value.trim() || state.idea;
+  if (!typedIdea) {
+    setProposalStatus(t("proposalStatusFillIdea"));
+    els.ideaInput?.focus();
+    return;
+  }
+  if (!state.idea) {
+    state.idea = typedIdea;
+    useLocalBmc(typedIdea);
+    renderCanvas();
+    renderRisks();
+  }
+
+  state.proposalAssumptions = collectProposalAssumptions();
+  setProposalStatus(t("proposalStatusGenerating"));
+  if (els.generateProposal) els.generateProposal.disabled = true;
+
+  try {
+    state.proposal = hasBackendConfig()
+      ? await generateInvestorProposalViaBackend(state.proposalAssumptions)
+      : buildLocalInvestorProposal(state.proposalAssumptions);
+    setProposalStatus(t("proposalStatusReady"));
+  } catch (error) {
+    state.proposal = buildLocalInvestorProposal(state.proposalAssumptions);
+    setProposalStatus(`${t("proposalStatusFallback")} (${error.message})`);
+  } finally {
+    if (els.generateProposal) els.generateProposal.disabled = false;
+  }
+
+  renderInvestorProposal();
+  persistState();
+}
+
+function normalizeInvestorProposal(data, assumptions) {
+  const fallback = buildLocalInvestorProposal(assumptions);
+  return {
+    title: String(data?.title || fallback.title).trim(),
+    readinessScore: clampScore(data?.readinessScore ?? data?.score ?? fallback.readinessScore),
+    readinessSummary: String(data?.readinessSummary || data?.summary || fallback.readinessSummary).trim(),
+    scoreBreakdown: normalizeScoreBreakdown(data?.scoreBreakdown, fallback.scoreBreakdown),
+    financials: normalizeLabelValueList(data?.financials, fallback.financials),
+    evidence: normalizeStringList(data?.evidence, fallback.evidence, 8),
+    sections: normalizeProposalSections(data?.sections, fallback.sections)
+  };
+}
+
+function buildLocalInvestorProposal(assumptions = {}) {
+  const en = state.language === "en";
+  const scoreData = calculateInvestorReadiness(assumptions);
+  const customer = firstBmcPoint("customerSegments");
+  const value = firstBmcPoint("valuePropositions");
+  const channel = firstBmcPoint("channels");
+  const revenue = firstBmcPoint("revenueStreams");
+  const cost = firstBmcPoint("costStructure");
+  const risk = state.risks?.[0] || {};
+  const text = en ? {
+    title: "Investor Proposal - Business Plan",
+    summary: "This proposal turns the current BMC into an investor discussion document. Treat it as a working draft until revenue, retention, acquisition cost, and delivery capacity are proven with real users.",
+    scoreHigh: "The material is strong enough for an early investor conversation, but traction and unit economics still need verifiable evidence.",
+    scoreMid: "The business direction is visible, but investors will still ask for stronger demand, pricing, and milestone evidence.",
+    scoreLow: "Too many critical assumptions are missing. Prioritize traction, pricing, use of funds, and milestones before pitching.",
+    exec: "1. Executive Summary",
+    market: "2. Problem, Customer, and Market Entry",
+    solution: "3. Solution and Differentiation",
+    model: "4. Business Model, Pricing, and Unit Economics",
+    gtm: "5. Go-To-Market Plan",
+    traction: "6. Traction and Evidence",
+    risks: "7. Risks and Validation Plan",
+    funds: "8. Funding Ask and Use of Funds",
+    milestones: "9. Milestones and KPIs",
+    pMarket: "Investors look for evidence that the target segment has an urgent, repeated, and monetizable problem. The first market should be narrow enough to reach directly.",
+    pSolution: "The product story must explain why customers would switch from their current workaround, free tools, competitors, or doing nothing.",
+    pModel: "The financial model should start from a simple paid offer and clear cost assumptions before scaling automation or paid acquisition.",
+    pGtm: "The first growth motion should use channels where the founder can personally observe objections and conversion before automating campaigns.",
+    pTraction: "Do not present assumptions as traction. Separate what is already proven from what still needs validation.",
+    pRisk: "The riskiest assumption should be tested before spending heavily on product, hiring, or paid marketing.",
+    pFunds: "A credible funding ask connects capital to measurable milestones, not vague growth.",
+    pMilestones: "Milestones should show the path from founder-led validation to repeatable acquisition and revenue quality.",
+    focus: "Main execution focus for the next 30 days: prove demand, pricing, and repeatable acquisition.",
+    interview: "7-day action: interview 15 target users and collect exact pain, current workaround, budget, and buying trigger.",
+    proof: "Proof needed: before-after example, demo output, testimonial, or pilot result from the target segment.",
+    pricingTest: "30-day experiment: ask 20 prospects to choose between entry, pro, and premium packages; target at least 3 paid commitments or deposits.",
+    direct: "Channel 2: direct outreach to 30 named prospects from communities, LinkedIn, WhatsApp groups, partner lists, or existing relationships.",
+    landing: "Channel 3: one landing page with a single CTA, pricing anchor, and proof section.",
+    gtmKpi: "KPI: visitor-to-lead conversion above 8%, reply rate above 15%, and at least 5 qualified conversations in 14 days.",
+    rule: "Decision rule: continue only if demand, margin, and delivery quality meet the target KPI; otherwise narrow the segment or revise pricing.",
+    fundsQuestion: "Investor question to prepare: how many months of runway this creates, what revenue milestone it unlocks, and what happens if fundraising is delayed.",
+    kpiSet: "Suggested KPI set: qualified leads, activation rate, paid conversion, gross margin, retention/repeat usage, CAC payback, and customer satisfaction.",
+    priority: "30-day priority: get proof that at least one segment, one offer, and one channel can produce paid demand."
+  } : {
+    title: "Proposal Investor - Rencana Bisnis",
+    summary: "Proposal ini mengubah BMC saat ini menjadi dokumen diskusi investor. Anggap sebagai draft kerja sampai revenue, retensi, biaya akuisisi, dan kapasitas delivery terbukti dengan user nyata.",
+    scoreHigh: "Materi sudah cukup kuat untuk diskusi investor awal, tetapi tetap perlu data traction dan unit economics yang bisa diverifikasi.",
+    scoreMid: "Arah bisnis sudah terbaca, tetapi investor masih akan meminta bukti demand, pricing, dan milestone yang lebih terukur.",
+    scoreLow: "Masih terlalu banyak asumsi penting yang kosong. Prioritaskan traction, pricing, use of funds, dan milestone sebelum pitching.",
+    exec: "1. Ringkasan Eksekutif",
+    market: "2. Masalah, Pelanggan, dan Entry Market",
+    solution: "3. Solusi dan Diferensiasi",
+    model: "4. Model Bisnis, Pricing, dan Unit Economics",
+    gtm: "5. Go-To-Market Plan",
+    traction: "6. Traction dan Bukti",
+    risks: "7. Risiko dan Rencana Validasi",
+    funds: "8. Target Pendanaan dan Use of Funds",
+    milestones: "9. Milestone dan KPI",
+    pMarket: "Investor mencari bukti bahwa target segmen punya masalah yang mendesak, berulang, dan bisa dimonetisasi. Pasar pertama harus cukup sempit untuk dijangkau langsung.",
+    pSolution: "Cerita produk harus menjelaskan mengapa pelanggan mau berpindah dari cara lama, tools gratis, kompetitor, atau tidak melakukan apa-apa.",
+    pModel: "Model keuangan dimulai dari penawaran berbayar yang sederhana dan asumsi biaya yang jelas sebelum scaling otomatisasi atau iklan berbayar.",
+    pGtm: "Gerak pertumbuhan pertama sebaiknya memakai channel yang membuat founder bisa melihat keberatan dan konversi secara langsung sebelum kampanye diotomatisasi.",
+    pTraction: "Jangan menyebut asumsi sebagai traction. Pisahkan hal yang sudah terbukti dari hal yang masih perlu divalidasi.",
+    pRisk: "Asumsi paling berisiko harus diuji sebelum menghabiskan biaya besar untuk produk, hiring, atau paid marketing.",
+    pFunds: "Target pendanaan yang kredibel menghubungkan modal dengan milestone terukur, bukan sekadar pertumbuhan umum.",
+    pMilestones: "Milestone harus menunjukkan jalur dari validasi founder-led menuju akuisisi dan revenue yang bisa diulang.",
+    focus: "Fokus 30 hari: membuktikan demand, pricing, dan channel akuisisi yang bisa diulang.",
+    interview: "Aksi 7 hari: wawancarai 15 target user dan catat pain, solusi saat ini, budget, serta trigger pembelian.",
+    proof: "Bukti yang dibutuhkan: contoh before-after, demo output, testimoni, atau hasil pilot dari target segmen.",
+    pricingTest: "Eksperimen 30 hari: minta 20 prospek memilih paket entry, pro, dan premium; target minimal 3 komitmen bayar atau DP.",
+    direct: "Channel 2: outreach ke 30 prospek bernama dari komunitas, LinkedIn, grup WhatsApp, daftar partner, atau relasi founder.",
+    landing: "Channel 3: satu landing page dengan satu CTA, anchor harga, dan section bukti.",
+    gtmKpi: "KPI: visitor-to-lead di atas 8%, reply rate di atas 15%, dan minimal 5 percakapan qualified dalam 14 hari.",
+    rule: "Decision rule: lanjut jika demand, margin, dan kualitas delivery memenuhi KPI; jika tidak, sempitkan segmen atau revisi pricing.",
+    fundsQuestion: "Pertanyaan investor yang perlu disiapkan: runway berapa bulan, milestone revenue apa yang terbuka, dan rencana jika fundraising terlambat.",
+    kpiSet: "Set KPI yang disarankan: qualified leads, activation rate, paid conversion, gross margin, repeat usage/retention, CAC payback, dan kepuasan pelanggan.",
+    priority: "Prioritas 30 hari: buktikan satu segmen, satu penawaran, dan satu channel bisa menghasilkan demand berbayar."
+  };
+  const summary = scoreData.score >= 80 ? text.scoreHigh : scoreData.score >= 55 ? text.scoreMid : text.scoreLow;
+  return {
+    title: text.title,
+    readinessScore: scoreData.score,
+    readinessSummary: summary,
+    scoreBreakdown: scoreData.breakdown,
+    financials: buildFinancialSnapshot(assumptions),
+    evidence: buildEvidenceBullets(assumptions),
+    sections: [
+      { title: text.exec, paragraphs: [text.summary, `${en ? "Strongest customer hypothesis" : "Hipotesis pelanggan terkuat"}: ${customer}. ${en ? "Value proposition to validate" : "Value proposition yang perlu dibuktikan"}: ${value}.`], bullets: [`${en ? "Primary offer" : "Penawaran utama"}: ${revenue}`, `${en ? "Funding ask" : "Target pendanaan"}: ${assumptions.fundingAsk || t("proposalNoData")}`, text.focus] },
+      { title: text.market, paragraphs: [text.pMarket], bullets: [`${en ? "Initial segment" : "Segmen awal"}: ${customer}`, `${en ? "First channel to test" : "Channel pertama untuk diuji"}: ${channel}`, text.interview] },
+      { title: text.solution, paragraphs: [text.pSolution], bullets: [`${en ? "Core value proposition" : "Value proposition inti"}: ${value}`, text.proof, en ? "KPI: at least 30% of interviewed prospects ask for a demo, pilot, quote, or follow-up." : "KPI: minimal 30% prospek yang diwawancarai meminta demo, pilot, penawaran harga, atau follow-up."] },
+      { title: text.model, paragraphs: [text.pModel], bullets: [`${en ? "Pricing hypothesis" : "Hipotesis harga"}: ${assumptions.productPrice || revenue}`, `${en ? "Gross margin assumption" : "Asumsi gross margin"}: ${assumptions.grossMargin || t("proposalNoData")}`, `${en ? "Key cost item" : "Pos biaya utama"}: ${cost}`, text.pricingTest] },
+      { title: text.gtm, paragraphs: [text.pGtm], bullets: [`Channel 1: ${channel}`, text.direct, text.landing, text.gtmKpi] },
+      { title: text.traction, paragraphs: [text.pTraction], bullets: buildEvidenceBullets(assumptions) },
+      { title: text.risks, paragraphs: [text.pRisk], bullets: [`${en ? "Main risk" : "Risiko utama"}: ${risk.title || t("proposalNoData")}`, `${en ? "Why it matters" : "Mengapa penting"}: ${risk.why || t("proposalNoData")}`, `${en ? "Validation test" : "Cara validasi"}: ${risk.test || (en ? "Run a 7-30 day pilot with measurable conversion, willingness to pay, and delivery quality." : "Jalankan pilot 7-30 hari dengan metrik conversion, willingness to pay, dan kualitas delivery.")}`, text.rule] },
+      { title: text.funds, paragraphs: [text.pFunds], bullets: [`${en ? "Funding ask" : "Target pendanaan"}: ${assumptions.fundingAsk || t("proposalNoData")}`, `${en ? "Use of funds" : "Rencana penggunaan dana"}: ${assumptions.useOfFunds || t("proposalNoData")}`, text.fundsQuestion] },
+      { title: text.milestones, paragraphs: [text.pMilestones], bullets: [`${en ? "Milestones" : "Milestone"}: ${assumptions.milestones || t("proposalNoData")}`, text.kpiSet, text.priority] }
+    ]
+  };
+}
+
+function calculateInvestorReadiness(assumptions = {}) {
+  const bmcCompleteness = blocks.filter((block) => (state.bmc?.[block.key] || []).length >= 3).length;
+  const bmcScore = Math.round((bmcCompleteness / blocks.length) * 20);
+  const breakdown = [
+    { label: t("proposalScoreBmc"), score: bmcScore, note: `${bmcCompleteness}/9 BMC blocks have usable detail.` },
+    { label: t("proposalScoreFunding"), score: assumptions.fundingAsk ? 12 : 0, note: assumptions.fundingAsk || t("proposalNoData") },
+    { label: t("proposalScorePricing"), score: (assumptions.productPrice ? 8 : 0) + (assumptions.grossMargin ? 8 : 0), note: [assumptions.productPrice, assumptions.grossMargin].filter(Boolean).join("; ") || t("proposalNoData") },
+    { label: t("proposalScoreTraction"), score: (assumptions.currentRevenue ? 8 : 0) + (assumptions.monthlyCustomers ? 6 : 0) + (assumptions.tractionEvidence ? 10 : 0), note: assumptions.tractionEvidence || assumptions.currentRevenue || t("proposalNoData") },
+    { label: t("proposalScoreUseFunds"), score: assumptions.useOfFunds ? 14 : 0, note: assumptions.useOfFunds || t("proposalNoData") },
+    { label: t("proposalScoreMilestone"), score: assumptions.milestones ? 12 : 0, note: assumptions.milestones || t("proposalNoData") }
+  ];
+  return { score: clampScore(breakdown.reduce((sum, item) => sum + item.score, 0)), breakdown };
+}
+
+function buildFinancialSnapshot(assumptions = {}) {
+  const labels = state.language === "en"
+    ? ["Funding ask", "Current revenue", "Price/package", "Gross margin", "Monthly customers"]
+    : ["Target pendanaan", "Revenue saat ini", "Harga/paket", "Gross margin", "Pelanggan/bulan"];
+  const values = [assumptions.fundingAsk, assumptions.currentRevenue, assumptions.productPrice, assumptions.grossMargin, assumptions.monthlyCustomers];
+  return labels.map((label, index) => ({ label, value: values[index] || t("proposalNoData") }));
+}
+
+function buildEvidenceBullets(assumptions = {}) {
+  if (state.language === "en") {
+    return [
+      `Revenue evidence: ${assumptions.currentRevenue || t("proposalNoData")}`,
+      `Customer/usage evidence: ${assumptions.monthlyCustomers || t("proposalNoData")}`,
+      `Traction proof: ${assumptions.tractionEvidence || t("proposalNoData")}`,
+      "Next evidence to collect in 30 days: paid commitments, activation rate, repeat usage, testimonial, and delivery cost data."
+    ];
+  }
+  return [
+    `Bukti revenue: ${assumptions.currentRevenue || t("proposalNoData")}`,
+    `Bukti pelanggan/penggunaan: ${assumptions.monthlyCustomers || t("proposalNoData")}`,
+    `Bukti traction: ${assumptions.tractionEvidence || t("proposalNoData")}`,
+    "Bukti berikutnya dalam 30 hari: komitmen bayar, activation rate, repeat usage, testimoni, dan data biaya delivery."
+  ];
+}
+
+function getBmcPoints(key) {
+  return Array.isArray(state.bmc?.[key]) ? state.bmc[key].filter(Boolean) : [];
+}
+
+function firstBmcPoint(key) {
+  return getBmcPoints(key)[0] || t("proposalNoData");
+}
+
+function renderInvestorProposal() {
+  if (!els.investorScore || !els.proposalDocument) return;
+  if (!state.proposal) {
+    els.investorScore.innerHTML = `<strong>${t("proposalScoreTitle")}</strong><span>-</span><p>${t("proposalScoreEmpty")}</p>`;
+    els.proposalDocument.innerHTML = `<article class="proposal-section-card"><h3>${t("proposalEmptyTitle")}</h3><p>${t("proposalEmptyBody")}</p></article>`;
+    return;
+  }
+  const proposal = state.proposal;
+  const breakdown = normalizeScoreBreakdown(proposal.scoreBreakdown, []).map((item) => `<div><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(String(item.score))}</strong><p>${escapeHtml(item.note || "")}</p></div>`).join("");
+  const financials = normalizeLabelValueList(proposal.financials, []).map((item) => `<div><span>${escapeHtml(item.label)}</span><strong>${escapeHtml(item.value)}</strong></div>`).join("");
+  const evidence = normalizeStringList(proposal.evidence, [], 8).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const sectionHtml = normalizeProposalSections(proposal.sections, []).map((section) => {
+    const paragraphs = normalizeStringList(section.paragraphs, [], 4).map((item) => `<p>${escapeHtml(item)}</p>`).join("");
+    const bullets = normalizeStringList(section.bullets, [], 8).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    return `<article class="proposal-section-card"><h3>${escapeHtml(section.title)}</h3>${paragraphs}${bullets ? `<ul>${bullets}</ul>` : ""}</article>`;
+  }).join("");
+  els.investorScore.innerHTML = `<strong>${t("proposalScoreTitle")}</strong><span>${escapeHtml(String(proposal.readinessScore))}/100</span><p>${escapeHtml(proposal.readinessSummary)}</p><div class="score-breakdown">${breakdown}</div>`;
+  els.proposalDocument.innerHTML = `<article class="proposal-section-card"><h3>${escapeHtml(proposal.title)}</h3><div class="proposal-data-grid">${financials}</div></article><article class="proposal-section-card"><h3>${t("proposalDataEvidence")}</h3><ul>${evidence}</ul></article>${sectionHtml}`;
+}
+
+function normalizeProposalSections(value, fallback = []) {
+  const cleaned = (Array.isArray(value) ? value : []).map((section) => ({
+    title: String(section?.title || "").trim(),
+    paragraphs: normalizeStringList(section?.paragraphs, [], 5),
+    bullets: normalizeStringList(section?.bullets, [], 10)
+  })).filter((section) => section.title && (section.paragraphs.length || section.bullets.length));
+  return cleaned.length ? cleaned : fallback;
+}
+
+function normalizeScoreBreakdown(value, fallback = []) {
+  const cleaned = (Array.isArray(value) ? value : []).map((item) => ({
+    label: String(item?.label || "").trim(),
+    score: clampScore(item?.score ?? 0),
+    note: String(item?.note || "").trim()
+  })).filter((item) => item.label).slice(0, 8);
+  return cleaned.length ? cleaned : fallback;
+}
+
+function normalizeLabelValueList(value, fallback = []) {
+  const cleaned = (Array.isArray(value) ? value : []).map((item) => ({
+    label: String(item?.label || "").trim(),
+    value: String(item?.value || "").trim()
+  })).filter((item) => item.label && item.value).slice(0, 10);
+  return cleaned.length ? cleaned : fallback;
+}
+
+function normalizeStringList(value, fallback = [], max = 8) {
+  const cleaned = (Array.isArray(value) ? value : []).map((item) => String(item || "").trim()).filter(Boolean).slice(0, max);
+  return cleaned.length ? cleaned : fallback.slice(0, max);
+}
+
+function clampScore(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.max(0, Math.min(100, Math.round(number)));
+}
+
+function toProposalMarkdown() {
+  const proposal = state.proposal;
+  if (!proposal) return "";
+  const lines = [`# ${proposal.title}`, "", `Investor readiness score: ${proposal.readinessScore}/100`, "", proposal.readinessSummary, ""];
+  lines.push(`## ${t("proposalFinancialSnapshot")}`);
+  normalizeLabelValueList(proposal.financials, []).forEach((item) => lines.push(`- ${item.label}: ${item.value}`));
+  lines.push("", `## ${t("proposalDataEvidence")}`);
+  normalizeStringList(proposal.evidence, [], 8).forEach((item) => lines.push(`- ${item}`));
+  lines.push("");
+  normalizeProposalSections(proposal.sections, []).forEach((section) => {
+    lines.push(`## ${section.title}`);
+    normalizeStringList(section.paragraphs, [], 5).forEach((item) => lines.push("", item));
+    normalizeStringList(section.bullets, [], 10).forEach((item) => lines.push(`- ${item}`));
+    lines.push("");
+  });
+  return lines.filter((line, index, arr) => !(line === "" && arr[index - 1] === "")).join("\n");
+}
+
+function toProposalStandaloneHtml() {
+  const proposal = state.proposal;
+  if (!proposal) return "";
+  const body = els.proposalDocument?.innerHTML || "";
+  const score = els.investorScore?.innerHTML || "";
+  return `<!doctype html><html lang="${state.language}"><head><meta charset="utf-8"><title>${escapeHtml(proposal.title)}</title><style>body{font-family:Arial,sans-serif;line-height:1.55;max-width:980px;margin:40px auto;padding:0 18px;color:#17211f}.investor-score,.proposal-section-card{border:1px solid #dce4df;border-radius:8px;padding:16px;margin:12px 0}.proposal-data-grid,.score-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}h1,h2,h3{line-height:1.15}</style></head><body><h1>${escapeHtml(proposal.title)}</h1><section class="investor-score">${score}</section>${body}</body></html>`;
+}
+
+function printInvestorProposal() {
+  if (!state.proposal) {
+    setProposalStatus(t("proposalExportEmpty"));
+    return;
+  }
+  const html = toProposalStandaloneHtml();
+  const win = window.open("", "_blank");
+  if (!win) {
+    downloadFile("investor-proposal.html", html, "text/html");
+    return;
+  }
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 250);
+}
+
+function setProposalStatus(message) {
+  if (!els.proposalStatus) return;
+  els.proposalStatus.dataset.custom = message === t("proposalStatusIdle") ? "" : "true";
+  els.proposalStatus.textContent = message;
 }
 
 function renderSocialControls() {

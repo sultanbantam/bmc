@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
-const { generateBmc, chatBmc } = require("./bmcService");
+const { generateBmc, chatBmc, generateInvestorProposal } = require("./bmcService");
 const { listKnowledgeSources, uploadKnowledgeSource, searchKnowledge } = require("./knowledgeStore");
 const { saveDrafts, schedulePosts, publishDuePosts, listSocialPosts, getSocialConfig, getPublishIntervalMs } = require("./socialStore");
 
@@ -51,6 +51,20 @@ app.post("/api/bmc/chat", requireAppKey, async (req, res, next) => {
   }
 });
 
+app.post("/api/investor/proposal", requireAppKey, async (req, res, next) => {
+  try {
+    const result = await generateInvestorProposal({
+      idea: req.body?.idea,
+      bmc: req.body?.bmc,
+      risks: req.body?.risks,
+      assumptions: req.body?.assumptions,
+      language: req.body?.language
+    });
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
 app.post("/api/knowledge/upload", requireAppKey, requireAdminKey, async (req, res, next) => {
   try {
     res.json(uploadKnowledgeSource(req.body));

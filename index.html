@@ -36,6 +36,7 @@
       <nav class="nav-links" aria-label="Bagian halaman">
         <a href="#workspace">Generator</a>
         <a class="admin-only" href="#knowledge-base" hidden>Knowledge</a>
+        <a href="#investor-proposal">Proposal Investor</a>
         <a href="#social-agent">Social Agent</a>
         <a href="#pricing">Harga</a>
         <a href="#faq">FAQ</a>
@@ -247,6 +248,73 @@
         </div>
       </section>
 
+      <section class="proposal-section" id="investor-proposal">
+        <div class="section-heading">
+          <p class="eyebrow">Core Feature 3</p>
+          <h2>Investor Proposal Builder</h2>
+          <p>
+            Ubah BMC menjadi proposal bisnis yang lebih siap diajukan ke calon investor, lengkap dengan readiness score, asumsi keuangan, penggunaan dana, dan milestone.
+          </p>
+        </div>
+
+        <div class="proposal-workbench">
+          <form class="proposal-form" id="proposal-form">
+            <div>
+              <span class="panel-kicker">Data proposal</span>
+              <h3>Lengkapi asumsi investor</h3>
+            </div>
+            <div class="proposal-field-grid">
+              <label>
+                Dana yang dicari
+                <input id="funding-ask" type="text" placeholder="Contoh: Rp500 juta untuk runway 12 bulan" />
+              </label>
+              <label>
+                Omzet saat ini
+                <input id="current-revenue" type="text" placeholder="Contoh: Rp15 juta/bulan atau belum ada" />
+              </label>
+              <label>
+                Harga produk
+                <input id="product-price" type="text" placeholder="Contoh: Rp50.000/bulan" />
+              </label>
+              <label>
+                Margin kotor
+                <input id="gross-margin" type="text" placeholder="Contoh: 60% asumsi awal" />
+              </label>
+              <label>
+                Target pelanggan/bulan
+                <input id="monthly-customers" type="text" placeholder="Contoh: 200 pelanggan berbayar bulan ke-6" />
+              </label>
+            </div>
+            <label for="traction-evidence">Traction atau bukti validasi</label>
+            <textarea id="traction-evidence" rows="4" placeholder="Contoh: 35 calon pelanggan ikut waiting list, 8 wawancara, 3 pre-order, testimoni, atau link landing page."></textarea>
+            <label for="use-of-funds">Rencana penggunaan dana</label>
+            <textarea id="use-of-funds" rows="4" placeholder="Contoh: 35% produk, 25% marketing, 20% operasional, 10% legal, 10% cadangan."></textarea>
+            <label for="milestones">Milestone 6-12 bulan</label>
+            <textarea id="milestones" rows="4" placeholder="Contoh: MVP bulan 2, 100 pelanggan bulan 4, break-even unit economics bulan 9."></textarea>
+            <div class="proposal-actions">
+              <button class="icon-button primary" id="generate-proposal" type="submit"><span aria-hidden="true">+</span><span>Buat Proposal Investor</span></button>
+              <button class="icon-button" id="export-proposal-md" type="button"><span aria-hidden="true">md</span><span>Markdown</span></button>
+              <button class="icon-button" id="export-proposal-html" type="button"><span aria-hidden="true">html</span><span>HTML</span></button>
+              <button class="icon-button" id="print-proposal" type="button"><span aria-hidden="true">pdf</span><span>Print PDF</span></button>
+            </div>
+            <p class="proposal-status" id="proposal-status">Proposal siap dibuat dari BMC.</p>
+          </form>
+
+          <section class="proposal-output" aria-label="Output proposal investor">
+            <div class="investor-score" id="investor-score">
+              <span class="panel-kicker">Investor readiness</span>
+              <strong>0/100</strong>
+              <p>Generate BMC dan isi asumsi investor untuk melihat skor kesiapan.</p>
+            </div>
+            <div class="proposal-document" id="proposal-document" aria-live="polite">
+              <article class="empty-state">
+                <h3>Belum ada proposal</h3>
+                <p>Buat BMC terlebih dahulu, lengkapi data investor, lalu klik Buat Proposal Investor.</p>
+              </article>
+            </div>
+          </section>
+        </div>
+      </section>
       <section class="social-section" id="social-agent">
         <div class="section-heading">
           <p class="eyebrow">Core Feature 2</p>

@@ -1,4 +1,4 @@
-﻿const { blocks } = require("./localGenerator");
+const { blocks } = require("./localGenerator");
 
 function blockContractFor(language) {
   return blocks.map((block) => {
@@ -294,6 +294,112 @@ Required JSON format:
 `.trim();
 }
 
+function buildInvestorProposalMessages({ idea, bmc, risks, assumptions, language: requestedLanguage, knowledge: requestedKnowledge }) {
+  const language = normalizeLanguage(requestedLanguage);
+  const knowledge = requestedKnowledge?.summary || "";
+  const content = language === "en"
+    ? buildInvestorProposalPromptEn({ idea, bmc, risks, assumptions, knowledge })
+    : buildInvestorProposalPromptId({ idea, bmc, risks, assumptions, knowledge });
+
+  return [
+    { role: "system", content: systemPrompt(language) },
+    { role: "user", content }
+  ];
+}
+
+function buildInvestorProposalPromptId({ idea, bmc, risks, assumptions, knowledge }) {
+  return `
+Ubah BMC berikut menjadi proposal bisnis untuk diskusi calon investor.
+
+Ide bisnis:
+${idea || "-"}
+
+BMC:
+${JSON.stringify(bmc || {}, null, 2)}
+
+Risiko/asumsi:
+${JSON.stringify(risks || [], null, 2)}
+
+Data investor dari founder:
+${JSON.stringify(assumptions || {}, null, 2)}
+
+Rujukan knowledge base kurasi jika tersedia:
+${knowledge || "-"}
+
+Bahasa output wajib: Bahasa Indonesia.
+
+Aturan proposal investor:
+- Jangan mengarang traction. Pisahkan data nyata, asumsi, dan gap data.
+- Wajib spesifik ke ide bisnis user, segmen target nyata, channel akuisisi konkret, pricing/range harga, eksperimen 7-30 hari, KPI, dan decision rule.
+- Jangan memakai kalimat umum seperti "media sosial", "pengguna awal", "meningkatkan efisiensi", atau "konten edukasi" tanpa detail target, kanal, pesan, angka, dan cara ukur.
+- Jika angka belum ada, tulis sebagai asumsi awal dan jelaskan bukti apa yang harus dikumpulkan.
+- Proposal harus bisa langsung dipakai founder sebagai draft diskusi investor awal.
+
+Format JSON wajib:
+{
+  "title": "judul proposal pendek",
+  "readinessScore": 0,
+  "readinessSummary": "ringkasan kesiapan investor",
+  "scoreBreakdown": [
+    { "label": "Kejelasan BMC", "score": 0, "note": "catatan" }
+  ],
+  "financials": [
+    { "label": "Target pendanaan", "value": "..." }
+  ],
+  "evidence": ["bukti/gap data 1"],
+  "sections": [
+    { "title": "1. Ringkasan Eksekutif", "paragraphs": ["..."], "bullets": ["..."] }
+  ]
+}
+`.trim();
+}
+
+function buildInvestorProposalPromptEn({ idea, bmc, risks, assumptions, knowledge }) {
+  return `
+Turn the following BMC into an investor-facing business proposal.
+
+Business idea:
+${idea || "-"}
+
+BMC:
+${JSON.stringify(bmc || {}, null, 2)}
+
+Risks/assumptions:
+${JSON.stringify(risks || [], null, 2)}
+
+Founder investor data:
+${JSON.stringify(assumptions || {}, null, 2)}
+
+Curated knowledge base references if available:
+${knowledge || "-"}
+
+Required output language: English. This is mandatory even if the user wrote in Indonesian.
+
+Investor proposal rules:
+- Do not invent traction. Separate real data, assumptions, and data gaps.
+- Be specific to the user's business idea, real target segments, concrete acquisition channels, pricing/range, 7-30 day experiments, KPIs, and decision rules.
+- Do not use generic phrases such as "social media", "early adopters", "improve efficiency", or "educational content" without target, channel, message, number, and measurement detail.
+- If numbers are missing, label them as initial assumptions and state what evidence must be collected.
+- The proposal should be usable as an early investor discussion draft.
+
+Required JSON format:
+{
+  "title": "short proposal title",
+  "readinessScore": 0,
+  "readinessSummary": "investor readiness summary",
+  "scoreBreakdown": [
+    { "label": "BMC clarity", "score": 0, "note": "note" }
+  ],
+  "financials": [
+    { "label": "Funding ask", "value": "..." }
+  ],
+  "evidence": ["evidence/data gap 1"],
+  "sections": [
+    { "title": "1. Executive Summary", "paragraphs": ["..."], "bullets": ["..."] }
+  ]
+}
+`.trim();
+}
 function normalizeLanguage(value) {
   return String(value || "").toLowerCase() === "en" ? "en" : "id";
 }
